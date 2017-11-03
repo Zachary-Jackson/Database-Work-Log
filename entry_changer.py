@@ -26,6 +26,8 @@ class EntryChanger():
         # This controls which method entry_changer is started with.
         if command == 'add':
             self.add()
+        if command == 'show all':
+            self.show_all()
 
     def clear(self):
         """ This clears the screen for easier viewing. """
@@ -94,6 +96,8 @@ class EntryChanger():
         """ This gets all of the work log entries from DatabaseIntermediary
         and sends it to self.show()."""
         database = DatabaseIntermediary()
+        # self.found_results is a dictionary with the keys of first_name,
+        # last_name, date, title, minutes, and notes.
         self.found_results = database.return_all()
         self.show()
 
@@ -225,23 +229,25 @@ class EntryChanger():
                 and menu_selector != 'all':
             self.show()
 
-    def show_template(self, entry_num, max_entries, entry_date,
-                      title, minutes, notes, menu_options=None):
+    def show_template(self, entry_num, max_entries, first_name, last_name,
+                      entry_date, title, minutes, notes, menu_options=None):
         """ This is template that is created for and used in show(). """
         self.clear()
         template = """
-      Entry number_{} of {}
+      Entry number_{} of {} by {} {}.
   Date: {}
   Title: {}
   Minutes: {}
 
   Notes: {}
   ----------------------------------------------------------------------------
-  """.format(entry_num + 1, max_entries, entry_date, title, minutes, notes)
+  """.format(entry_num + 1, max_entries, first_name, last_name, entry_date,
+             title, minutes, notes)
         print(template)
         print("  Enter 'q' to exit to the main menu\n" +
               "  Enter 'search' to do another search.\n" +
               "  Enter 'e' to edit this work log.\n" +
+              "  Enter 'g' to 'go' to another entry number.\n" +
               "  Enter 'd' to delete this work log.")
         if menu_options == 'left':
             print("  You can move left. Enter 'l' or 'left'")
@@ -286,6 +292,8 @@ class EntryChanger():
         # user in an organized fashion.
         while run_loop:
 
+            first_name = found_results[index_counter]['first_name']
+            last_name = found_results[index_counter]['last_name']
             entry_date = found_results[index_counter]['date']
             title = found_results[index_counter]['title']
             minutes = found_results[index_counter]['minutes']
@@ -304,8 +312,8 @@ class EntryChanger():
             if index_counter > 0 and index_counter < length - 1:
                 menu_options = 'both'
 
-            self.show_template(index_counter, length, entry_date, title,
-                               minutes, notes, menu_options)
+            self.show_template(index_counter, length, first_name, last_name,
+                               entry_date, title, minutes, notes, menu_options)
             menu_selector = input("  ").lower()
 
             # This controls if the user can actually go left and right.
@@ -321,6 +329,27 @@ class EntryChanger():
                         time.sleep(1)
                 else:
                     index_counter += 1
+            elif menu_selector == 'g' or menu_selector == 'go':
+                clear_screen = False
+                while True:
+                    if clear_screen:
+                        self.clear()
+                        print('\n  You must enter an integer between 1 and {}'
+                              .format(length))
+                    try:
+                        entry_num = int(input('\n  Which entry do you want ' +
+                                              'to go to?' +
+                                              '\n  You can move to any entry' +
+                                              ' between' +
+                                              ' 1 and {}.'.format(length)))
+                    except ValueError:
+                        clear_screen = True
+                    else:
+                        if entry_num >= 1 and entry_num <= length:
+                            break
+                        else:
+                            clear_screen = True
+                index_counter = entry_num - 1
             elif menu_selector == 'l' or menu_selector == 'left':
                 if index_counter <= 0:
                     timer_counter = range(3, 0, -1)

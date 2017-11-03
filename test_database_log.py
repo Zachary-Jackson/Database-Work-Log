@@ -11,7 +11,7 @@ class DatabaseIntermediaryTest(unittest.TestCase):
         pass
 
     def test_add(self):
-        """ This tests to see if test_add craches. """
+        """ This tests to see if add craches. """
         # Everything added will be deleted later in test_delete.
         first_name = 'Trevor'
         last_name = 'Harvey'
@@ -21,6 +21,11 @@ class DatabaseIntermediaryTest(unittest.TestCase):
         notes = 'This is testing entries.'
         data = DatabaseIntermediary()
         data.add(first_name, last_name, entry_date, title, minutes, notes)
+
+    def test_return_all(self):
+        """ This tests to see if return_all crashes. """
+        data = DatabaseIntermediary()
+        data.return_all()
 
 
 unittest.main()

@@ -24,8 +24,7 @@ def welcome():
 
 
 def name_picker():
-    """ This gathers a single users first and last name, or returns
-    all names. """
+    """ This gathers a single users first and last name. """
     while True:
         clear()
         clear_screen = True
@@ -107,7 +106,7 @@ def main():
             menu_item.run_entry_changer('search')
         if menu_selector == 'c' or menu_selector == 'c)' \
                 or menu_selector == 'change':
-            menu_item.show_all()
+            menu_item.run_entry_changer(first_name, last_name, 'show all')
 
         if menu_selector == 'd' or menu_selector == 'd)' \
                 or menu_selector == 'all':
