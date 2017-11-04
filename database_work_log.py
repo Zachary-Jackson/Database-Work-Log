@@ -101,12 +101,30 @@ def main():
         if menu_selector == 'a)' or menu_selector == 'a' \
                 or menu_selector == 'add':
             menu_item.run_entry_changer(first_name, last_name, 'add')
+
         if menu_selector == 'b)' or menu_selector == 'b' \
                 or menu_selector == 'search':
-            menu_item.run_entry_changer('search')
+            all_names = input("\n  Do you want to search via all names " +
+                              "or your name?\n" +
+                              "  Enter 'my' to search by your name, " +
+                              'otherwise, all will be searched.  ').lower()
+            if all_names != 'my':
+                menu_item.run_entry_changer(first_name, last_name, 'search',
+                                            all_names=True)
+            else:
+                menu_item.run_entry_changer(first_name, last_name, 'search')
+
         if menu_selector == 'c' or menu_selector == 'c)' \
                 or menu_selector == 'change':
-            menu_item.run_entry_changer(first_name, last_name, 'show all')
+            all_names = input("\n  Do you want to search via all names " +
+                              "or your name?\n" +
+                              "  Enter 'my' to search by your name, " +
+                              'otherwise, all will be searched.  ').lower()
+            if all_names != 'my':
+                menu_item.run_entry_changer(first_name, last_name, 'show all',
+                                            all_names=True)
+            else:
+                menu_item.run_entry_changer(first_name, last_name, 'show all')
 
         if menu_selector == 'd' or menu_selector == 'd)' \
                 or menu_selector == 'all':

@@ -26,12 +26,75 @@ class EntryChanger():
         # This controls which method entry_changer is started with.
         if command == 'add':
             self.add()
-        if command == 'show all':
+        elif command == 'show all':
             self.show_all()
+        elif command == 'search':
+            self.search()
 
     def clear(self):
         """ This clears the screen for easier viewing. """
         os.system('cls' if os.name == 'nt' else 'clear')
+
+    def name_picker(self):
+        """ This gathers a single users first and last name. """
+        self.clear()
+        if self.all_names:
+            all_names = input("\n  Do you want to search by a single name? " +
+                              "Y/n").lower()
+            if all_names != 'n':
+                self.all_names = False
+        else:
+            all_names = input("\n  Do you want to search by all names? " +
+                              "Y/n").lower()
+            if all_names != 'n':
+                self.all_names = True
+        if not self.all_names:
+            while True:
+                self.clear()
+                clear_screen = True
+                while True:
+                    if clear_screen:
+                        self.clear()
+                    else:
+                        for _ in range(3, 0, -1):
+                            self.clear()
+                            print("\n  Please enter a first name only.")
+                            print("  You can enter another name in {} seconds"
+                                  .format(_))
+                            time.sleep(1)
+                            self.clear()
+                    first_name = input("\n  Please enter a first name.  \n  ")\
+                        .title().strip()
+                    if ' ' in first_name or first_name == '':
+                        clear_screen = False
+                    else:
+                        break
+
+                clear_screen = False
+                while True:
+                    if clear_screen:
+                        for _ in range(3, 0, -1):
+                            self.clear()
+                            print("\n  Please enter a last name with no " +
+                                  "middle names.\n")
+                            print("  You can enter another name in {} seconds"
+                                  .format(_))
+                            time.sleep(1)
+                            self.clear()
+                    last_name = input("\n  Please enter a last name.  \n  ") \
+                        .title().strip()
+                    if ' ' in last_name or last_name == '':
+                        clear_screen = True
+                    else:
+                        break
+
+                good_name = input("\n  Is {} {} the name you want to use?"
+                                  " Y/n  "
+                                  .format(first_name, last_name)).lower()
+                if good_name != 'n':
+                    self.first_name = first_name
+                    self.last_name = last_name
+                    break
 
     def add(self, edit=False):
         """ This gathers information from the user and sends it to
@@ -98,7 +161,11 @@ class EntryChanger():
         database = DatabaseIntermediary()
         # self.found_results is a dictionary with the keys of first_name,
         # last_name, date, title, minutes, and notes.
-        self.found_results = database.return_all()
+        if self.all_names:
+            self.found_results = database.return_all()
+        else:
+            self.found_results = database.return_all(self.first_name,
+                                                     self.last_name)
         self.show()
 
     def search(self):
@@ -112,7 +179,13 @@ class EntryChanger():
                             'd)', 'e', 'e)', 'all', 'q', 'quit',
                             'date', 'time',
                             'exact', 'regular', 'regular expression']
-            menu_selector = input("\n    Enter how you would like to search " +
+
+            if self.all_names:
+                print('\n    You are currently searching by all names.')
+            else:
+                print("\n    You are only searching {} {}'s work logs."
+                      .format(self.first_name, self.last_name))
+            menu_selector = input("\n  Enter how you would like to search " +
                                   "the work log database.\n\n" +
                                   '  a) Search by date.\n' +
                                   '  b) Search by time spent\n' +
@@ -120,9 +193,13 @@ class EntryChanger():
                                   '  d) Search by a python ' +
                                   'regular expression\n' +
                                   '  e) Shows all work logs.\n' +
+                                  '  f) Change the names to be searched.'
                                   "\n     Enter 'q' to return to the" +
                                   " main menu.  "
                                   ).lower()
+            if menu_selector == 'f' or menu_selector == 'f)' or \
+               menu_selector == 'change':
+                self.name_picker()
             if menu_selector in menu_options:
                 break
 
@@ -137,13 +214,14 @@ class EntryChanger():
                 that tells the function which date number we are getting. """
                 # this controls which string is shown to the user.
                 if date_number == 1:
-                    string = ('\n  Please enter the first date in' +
+                    string = ('\n  Please enter the first date in ' +
                               'MM/DD/YYYY format.  ')
                 elif date_number == 2:
-                    string = ('  Please enter the second date in MM/DD/YYYY ' +
-                              ' format.  ')
+                    string = ('\n  Please enter the second date in ' +
+                              'MM/DD/YYYY format.  ')
                 else:
-                    string = '  Please enter the date in MM/DD/YYYY format.  '
+                    string = ('\n  Please enter the date in MM/DD/YYYY format'
+                              '.  ')
                 valid_variable = True
                 while True:
                     self.clear()
@@ -177,10 +255,22 @@ class EntryChanger():
                 user_date = inline_date_getter(date_number=1)
                 user_date_2 = inline_date_getter(date_number=2)
                 self.found_results = database.search(user_date=user_date,
-                                                     second_date=user_date_2)
+                                                     second_date=user_date_2,
+                                                     first_name= # noqa
+                                                     self.first_name, # noqa
+                                                     last_name= # noqa
+                                                     self.last_name, # noqa
+                                                     all_names= # noqa
+                                                     self.all_names) # noqa
             else:
                 user_date = inline_date_getter()
-                self.found_results = database.search(user_date=user_date)
+                self.found_results = database.search(user_date=user_date,
+                                                     first_name= # noqa
+                                                     self.first_name, # noqa
+                                                     last_name= # noqa
+                                                     self.last_name, # noqa
+                                                     all_names = # noqa
+                                                     self.all_names) # noqa
 
         # Find by time spent
         if menu_selector == 'b' or menu_selector == 'b)' \
