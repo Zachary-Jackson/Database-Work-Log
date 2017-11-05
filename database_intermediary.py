@@ -55,7 +55,7 @@ class DatabaseIntermediary():
         if all_names:
             self.return_all()
             db_contents = self.db_contents
-        else:
+        elif not all_names:
             self.return_all(first_name, last_name)
             db_contents = self.db_contents
 
@@ -66,7 +66,9 @@ class DatabaseIntermediary():
 
         if user_date and not second_date:
             for item in db_contents:
-                if user_date == item['date']:
+                item_date = datetime.datetime.strftime(item.entry_date,
+                                                       '%m/%d/%Y')
+                if user_date == item_date:
                     returned_list.append(item)
 
         if user_date and second_date:
@@ -76,39 +78,41 @@ class DatabaseIntermediary():
             else:
                 date_1_first = False
             for item in db_contents:
+                item_date = datetime.datetime.strftime(item.entry_date,
+                                                       '%m/%d/%Y')
                 if date_1_first:
-                    if (user_date <= item['date'] and second_date
-                            >= item['date']):
+                    if (user_date <= item_date and second_date
+                            >= item_date):
                         returned_list.append(item)
                 else:
-                    if (second_date <= item['date'] and user_date >=
-                            item['date']):
+                    if (second_date <= item_date and user_date >=
+                            item_date):
                         returned_list.append(item)
 
         elif minutes:
             # searching by the minutes section in the dictionary prevents
             # minutes from catching dates.
             for item in db_contents:
-                if minutes == item['minutes']:
+                if minutes == item.minutes:
                     returned_list.append(item)
 
         elif key_phrase:
             for item in db_contents:
-                # This changes item['minutes'] to a string so it can be
-                # searched through.
-                item['minutes'] = str(item['minutes'])
-                for value in item.values():
-                    if key_phrase in value:
-                        returned_list.append(item)
-                        break
+                if key_phrase in str(item.first_name) or \
+                        key_phrase in str(item.last_name) or \
+                        key_phrase in str(item.entry_date) or \
+                        key_phrase in str(item.title) or \
+                        key_phrase in str(item.minutes) or \
+                        key_phrase in str(item.notes):
+                    returned_list.append(item)
 
         elif regex:
             # This converts each dictionary for regex patterns in
             # the keys of 'title' and 'notes'
             for item in db_contents:
-                if re.findall(r'{}'.format(regex), item['title']):
+                if re.findall(r'{}'.format(regex), item.title):
                     returned_list.append(item)
-                elif re.findall(r'{}'.format(regex), item['notes']):
+                elif re.findall(r'{}'.format(regex), item.notes):
                     returned_list.append(item)
         self.found = returned_list
         return self.found
@@ -118,36 +122,17 @@ class DatabaseIntermediary():
         and returns it depending on the names given. """
         entries = Entry.select().order_by(Entry.entry_date)
         returned_list = []
-        if not first_name:
-            for entry in entries:
-                # This creates a dictionary for each entry and adds
-                # it to returned_list to return.
-                dictionary = {'first_name': entry.first_name}
-                dictionary['last_name'] = entry.last_name
-                str_date = datetime.datetime.strftime(entry.entry_date,
-                                                      '%m/%d/%Y')
-                dictionary['date'] = str_date
-                dictionary['title'] = entry.title
-                dictionary['minutes'] = entry.minutes
-                dictionary['notes'] = entry.notes
-                returned_list.append(dictionary)
+        for entry in entries:
+            # This creates a dictionary for each entry and adds
+            # it to returned_list to return.
+            if entry.first_name == first_name and \
+                    entry.last_name == last_name:
+                returned_list.append(entry)
         else:
             for entry in entries:
-                # This creates a dictionary for each entry and adds
-                # it to returned_list to return.
-                if entry.first_name == first_name and \
-                   entry.last_name == last_name:
-                    dictionary = {'first_name': entry.first_name}
-                    dictionary['last_name'] = entry.last_name
-                    str_date = datetime.datetime.strftime(entry.entry_date,
-                                                          '%m/%d/%Y')
-                    dictionary['date'] = str_date
-                    dictionary['title'] = entry.title
-                    dictionary['minutes'] = entry.minutes
-                    dictionary['notes'] = entry.notes
-                    returned_list.append(dictionary)
+                returned_list.append(entry)
         self.db_contents = returned_list
-        return returned_list
+        return entries
 
 
 def initialize():

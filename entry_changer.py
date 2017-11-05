@@ -319,10 +319,10 @@ class EntryChanger():
                 and menu_selector != 'all':
             self.show()
 
-    def show_template(self, entry_num, max_entries, first_name, last_name,
-                      entry_date, title, minutes, notes, menu_options=None):
+    def show_template(self, entry_num, max_entries, entry, menu_options=None):
         """ This is template that is created for and used in show(). """
         self.clear()
+        entry_date = datetime.datetime.strftime(entry.entry_date, '%m/%d/%Y')
         template = """
       Entry number_{} of {} by {} {}.
   Date: {}
@@ -331,8 +331,8 @@ class EntryChanger():
 
   Notes: {}
   ----------------------------------------------------------------------------
-  """.format(entry_num + 1, max_entries, first_name, last_name, entry_date,
-             title, minutes, notes)
+  """.format(entry_num + 1, max_entries, entry.first_name, entry.last_name,
+             entry_date, entry.title, entry.minutes, entry.notes)
         print(template)
         print("  Enter 'q' to exit to the main menu\n" +
               "  Enter 'search' to do another search.\n" +
@@ -377,18 +377,7 @@ class EntryChanger():
             run_loop = False
             self.search()
 
-        # This gathers all the information from a ceratain work log in
-        # found results and gathers the information to show to the
-        # user in an organized fashion.
         while run_loop:
-
-            first_name = found_results[index_counter]['first_name']
-            last_name = found_results[index_counter]['last_name']
-            entry_date = found_results[index_counter]['date']
-            title = found_results[index_counter]['title']
-            minutes = found_results[index_counter]['minutes']
-            notes = found_results[index_counter]['notes']
-
             # This creates the menu_options variable for the show_template
             # left means the user can move left.
             # Right, both and none mean the same as there name.
@@ -402,8 +391,8 @@ class EntryChanger():
             if index_counter > 0 and index_counter < length - 1:
                 menu_options = 'both'
 
-            self.show_template(index_counter, length, first_name, last_name,
-                               entry_date, title, minutes, notes, menu_options)
+            self.show_template(index_counter, length, found_results
+                               [index_counter], menu_options)
             menu_selector = input("  ").lower()
 
             # This controls if the user can actually go left and right.
