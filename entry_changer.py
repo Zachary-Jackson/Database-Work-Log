@@ -30,71 +30,137 @@ class EntryChanger():
             self.show_all()
         elif command == 'search':
             self.search()
+        # This returns the names to database_work_log incase the user exits
+        # to the main menu, but wants to continue.
+        return self.first_name, self.last_name
 
     def clear(self):
         """ This clears the screen for easier viewing. """
         os.system('cls' if os.name == 'nt' else 'clear')
 
-    def name_picker(self):
-        """ This gathers a single users first and last name. """
+    def name_picker_all(self):
+        """ This choices if the user want to search by one or all names. """
         self.clear()
         if self.all_names:
             all_names = input("\n  Do you want to search by a single name? " +
                               "Y/n").lower()
             if all_names != 'n':
                 self.all_names = False
+                self.name_picker()
         else:
             all_names = input("\n  Do you want to search by all names? " +
                               "Y/n").lower()
             if all_names != 'n':
                 self.all_names = True
-        if not self.all_names:
+
+    def name_picker(self):
+        """ This gathers a single users first and last name. """
+        name_getter = DatabaseIntermediary()
+        while True:
+            clear_screen = True
             while True:
-                self.clear()
-                clear_screen = True
-                while True:
-                    if clear_screen:
+                if clear_screen:
+                    self.clear()
+                    names = name_getter.name_returner()
+                    self.clear()
+                    # name_counter choses if a name is displayed beside another
+                    name_number = 0
+                    name_counter = 0
+                    if len(names) < 12:
+                        print('\n    Here are the current users to the Work ' +
+                              'Log Program.\n')
+                        for name in names:
+                            if name_counter == 0:
+                                print("  {} {}".format(name[0], name[1]),
+                                      end='')
+                                name_counter += 1
+                            else:
+                                if name_counter == 3:
+                                    print(', {} {}'.format(name[0], name[1]))
+                                    name_counter = 0
+                                else:
+                                    print(', {} {}'.format(name[0], name[1]),
+                                          end='')
+                                    name_counter += 1
+                            name_number += 1
+                    print('')
+
+                else:
+                    for _ in range(3, 0, -1):
                         self.clear()
+                        print("\n\n  Please enter a first name only.")
+                        print("  You can enter another name in {} seconds"
+                              .format(_))
+                        time.sleep(1)
+                        self.clear()
+                first_name = input("\n  Please enter a first name.  \n  ")\
+                    .title().strip()
+                if ' ' in first_name or first_name == '':
+                    clear_screen = False
+                else:
+                    # Checks to see if the first_name entered by the user
+                    # has a corresponding last name.
+                    found_names = []
+                    for name in names:
+                        if first_name in name[0]:
+                            found_names.append(name)
+                    # This
+                    if found_names:
+                        self.clear()
+                        print('  Please enter the number of the name you ' +
+                              'want to use.\n' +
+                              '  Or enter anything else to continue.\n')
+                        name_counter = 1
+                        for name in found_names:
+                            print(('  {}.  {} {}.  '.format(name_counter,
+                                  name[0], name[1])))
+                        use = input('  ')
+                        # Tries to correlate the int() version of use into a
+                        # number if possible
+                        try:
+                            use = int(use)
+                        except ValueError:
+                            need_last_name = True
+                            break
+                            pass
+                        else:
+                            try:
+                                last_name = found_names[use-1][1]
+                            except IndexError:
+                                need_last_name = True
+                                break
+                            else:
+                                need_last_name = False
+                                break
                     else:
-                        for _ in range(3, 0, -1):
-                            self.clear()
-                            print("\n  Please enter a first name only.")
-                            print("  You can enter another name in {} seconds"
-                                  .format(_))
-                            time.sleep(1)
-                            self.clear()
-                    first_name = input("\n  Please enter a first name.  \n  ")\
-                        .title().strip()
-                    if ' ' in first_name or first_name == '':
-                        clear_screen = False
-                    else:
+                        need_last_name = True
                         break
 
-                clear_screen = False
-                while True:
-                    if clear_screen:
-                        for _ in range(3, 0, -1):
-                            self.clear()
-                            print("\n  Please enter a last name with no " +
-                                  "middle names.\n")
-                            print("  You can enter another name in {} seconds"
-                                  .format(_))
-                            time.sleep(1)
-                            self.clear()
-                    last_name = input("\n  Please enter a last name.  \n  ") \
-                        .title().strip()
-                    if ' ' in last_name or last_name == '':
-                        clear_screen = True
-                    else:
-                        break
-
-                good_name = input("\n  Is {} {} the name you want to use?"
-                                  " Y/n  "
-                                  .format(first_name, last_name)).lower()
-                if good_name != 'n':
-                    self.first_name = first_name
-                    self.last_name = last_name
+            clear_screen = False
+            while need_last_name:
+                if clear_screen:
+                    for _ in range(3, 0, -1):
+                        self.clear()
+                        print("\n  Please enter a last name with no " +
+                              "middle names.\n")
+                        print("  You can enter another name in {} seconds"
+                              .format(_))
+                        time.sleep(1)
+                        self.clear()
+                last_name = input("\n  Please enter a last name.  \n  ")\
+                    .title().strip()
+                if ' ' in last_name or last_name == '':
+                    clear_screen = True
+                else:
                     break
+
+            good_name = input("\n  Is {} {} the name you want to use? Y/n  "
+                              .format(first_name, last_name)).lower()
+            if good_name != 'n':
+                self.first_name = first_name
+                self.last_name = last_name
+                return self.first_name, self.last_name
+                break
 
     def add(self, edit=False):
         """ This gathers information from the user and sends it to
@@ -199,7 +265,7 @@ class EntryChanger():
                                   ).lower()
             if menu_selector == 'f' or menu_selector == 'f)' or \
                menu_selector == 'change':
-                self.name_picker()
+                self.name_picker_all()
             if menu_selector in menu_options:
                 break
 

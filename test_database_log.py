@@ -34,11 +34,14 @@ class DatabaseIntermediaryTest(unittest.TestCase):
         data = DatabaseIntermediary()
         data.return_all()
 
-    def test_return_all_name(self):
+    def test_return_all_names(self):
         """ This tests to see if return_all finds Nik. """
         data = DatabaseIntermediary()
         test = data.return_all(first_name='Nik', last_name='Silver')
         self.assertEqual(test[0].first_name, 'Nik')
+
+        test_2 = data.return_all(first_name='Trevor', last_name='Harvey')
+        self.assertEqual(test_2[0].last_name, 'Harvey')
 
     def test_search_one_date(self):
         """ This tests to see if search finds by date."""
@@ -89,6 +92,13 @@ class DatabaseIntermediaryTest(unittest.TestCase):
         test_2 = data.search(regex='\(?\d{3}\)?-?\s?\d{3}-\d{4}',
                              all_names=True)
         self.assertIn('(555) 555-3425', test_2[0].notes)
+
+    def test_name_returner(self):
+        """ This tests to see if we get Trevor harvey and Nik Silver."""
+        data = DatabaseIntermediary()
+        test = data.name_returner()
+        self.assertIn(('Trevor', 'Harvey'), test)
+        self.assertIn(('Nik', 'Silver'), test)
 
 
 unittest.main()

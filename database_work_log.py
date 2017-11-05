@@ -1,4 +1,3 @@
-import time
 import os
 
 from entry_changer import EntryChanger
@@ -23,59 +22,13 @@ def welcome():
         print("\nUntil next time, bon voyage!")
 
 
-def name_picker():
-    """ This gathers a single users first and last name. """
-    while True:
-        clear()
-        clear_screen = True
-        while True:
-            if clear_screen:
-                clear()
-            else:
-                for _ in range(3, 0, -1):
-                    clear()
-                    print("\n  Please enter a first name only.")
-                    print("  You can enter another name in {} seconds".format(
-                                                                      _))
-                    time.sleep(1)
-                    clear()
-            first_name = input("\n  Please enter a first name.  \n  ").title()\
-                                                                      .strip()
-            if ' ' in first_name or first_name == '':
-                clear_screen = False
-            else:
-                break
-
-        clear_screen = False
-        while True:
-            if clear_screen:
-                for _ in range(3, 0, -1):
-                    clear()
-                    print("\n  Please enter a last name with no " +
-                          "middle names.\n")
-                    print("  You can enter another name in {} seconds".format(
-                                                                      _))
-                    time.sleep(1)
-                    clear()
-            last_name = input("\n  Please enter a last name.  \n  ").title()\
-                                                                    .strip()
-            if ' ' in last_name or last_name == '':
-                clear_screen = True
-            else:
-                break
-
-        good_name = input("\n  Is {} {} the name you want to use? Y/n  "
-                          .format(first_name, last_name)).lower()
-        if good_name != 'n':
-            return first_name, last_name
-
-
 def main():
     """ This is the primary menu for work_log.py and gathers information
     to call on the correct class. The user is also allowed to quit and
     end the script."""
 
-    first_name, last_name = name_picker()
+    name_getter = EntryChanger()
+    first_name, last_name = name_getter.name_picker()
     # temp all names
     all_names = False
     main_loop = True
@@ -100,7 +53,9 @@ def main():
                               '  e) Exit the program.  '.lower())
         if menu_selector == 'a)' or menu_selector == 'a' \
                 or menu_selector == 'add':
-            menu_item.run_entry_changer(first_name, last_name, 'add')
+            first_name, last_name = menu_item.run_entry_changer(first_name,
+                                                                last_name,
+                                                                'add')
 
         if menu_selector == 'b)' or menu_selector == 'b' \
                 or menu_selector == 'search':
@@ -109,10 +64,15 @@ def main():
                               "  Enter 'my' to search by your name, " +
                               'otherwise, all will be searched.  ').lower()
             if all_names != 'my':
-                menu_item.run_entry_changer(first_name, last_name, 'search',
-                                            all_names=True)
+                first_name, last_name = menu_item.run_entry_changer(first_name,
+                                                                    last_name,
+                                                                    'search',
+                                                                    all_names= # noqa
+                                                                    True)
             else:
-                menu_item.run_entry_changer(first_name, last_name, 'search')
+                first_name, last_name = menu_item.run_entry_changer(first_name,
+                                                                    last_name,
+                                                                    'search')
 
         if menu_selector == 'c' or menu_selector == 'c)' \
                 or menu_selector == 'change':
@@ -121,14 +81,19 @@ def main():
                               "  Enter 'my' to search by your name, " +
                               'otherwise, all will be searched.  ').lower()
             if all_names != 'my':
-                menu_item.run_entry_changer(first_name, last_name, 'show all',
-                                            all_names=True)
+                first_name, last_name = menu_item.run_entry_changer(first_name,
+                                                                    last_name,
+                                                                    'show all',
+                                                                    all_names= # noqa
+                                                                    True)
             else:
-                menu_item.run_entry_changer(first_name, last_name, 'show all')
+                first_name, last_name = menu_item.run_entry_changer(first_name,
+                                                                    last_name,
+                                                                    'show all')
 
         if menu_selector == 'd' or menu_selector == 'd)' \
                 or menu_selector == 'all':
-            first_name, last_name = name_picker()
+            first_name, last_name = name_getter.name_picker()
 
         if menu_selector == 'e' or menu_selector == 'e)' \
                 or menu_selector == 'q' or menu_selector == 'quit':

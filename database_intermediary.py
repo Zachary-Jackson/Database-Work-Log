@@ -122,17 +122,29 @@ class DatabaseIntermediary():
         and returns it depending on the names given. """
         entries = Entry.select().order_by(Entry.entry_date)
         returned_list = []
-        for entry in entries:
-            # This creates a dictionary for each entry and adds
-            # it to returned_list to return.
-            if entry.first_name == first_name and \
-                    entry.last_name == last_name:
-                returned_list.append(entry)
-        else:
+        # This creates a dictionary for each entry and adds
+        # it to returned_list to return.
+        if first_name:
+            for entry in entries:
+                if entry.first_name == first_name and \
+                        entry.last_name == last_name:
+                    returned_list.append(entry)
+        elif not first_name:
             for entry in entries:
                 returned_list.append(entry)
         self.db_contents = returned_list
-        return entries
+        return returned_list
+
+    def name_returner(self):
+        """ This finds all of the names that are currently in the database."""
+        entry_list = self.return_all()
+        returned_list = []
+        for item in entry_list:
+            name = (item.first_name, item.last_name)
+            if name not in returned_list:
+                returned_list.append(name)
+        returned_list.sort()
+        return returned_list
 
 
 def initialize():
