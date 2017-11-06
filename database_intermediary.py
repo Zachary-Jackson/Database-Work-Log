@@ -115,7 +115,26 @@ class DatabaseIntermediary():
                 elif re.findall(r'{}'.format(regex), item.notes):
                     returned_list.append(item)
         self.found = returned_list
-        return self.found
+        return returned_list
+
+    def editor(self, old_item, n_first=None, n_last=None, n_entry_date=None,
+               n_title=None, n_minutes=None, n_notes=None, edit=False):
+        """ This deletes an item that is sent into the editor if it
+        correlates to an item in the database. If edit is True it adds
+        one in its place."""
+        # This possibly refreshes the database contents.
+        self.return_all
+        for item in self.db_contents:
+            if old_item.first_name == item.first_name and\
+               old_item.last_name == item.last_name and\
+               old_item.entry_date == item.entry_date and\
+               old_item.title == item.title and\
+               old_item.minutes == item.minutes and\
+               old_item.notes == item.notes:
+                item.delete_instance()
+        if edit:
+            self.add(n_first, n_last, n_entry_date, n_title, n_minutes,
+                     n_notes)
 
     def return_all(self, first_name=False, last_name=False):
         """ This gets all of the information from the database

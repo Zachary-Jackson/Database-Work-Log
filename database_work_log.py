@@ -27,15 +27,15 @@ def main():
     to call on the correct class. The user is also allowed to quit and
     end the script."""
 
-    name_getter = EntryChanger()
-    first_name, last_name = name_getter.name_picker()
+    menu_item = EntryChanger()
+    # F and L are temporary names for testing and will be deleted later.
+    first_name, last_name = menu_item.run_entry_changer('F', 'L', 'get names')
     # temp all names
     all_names = False
     main_loop = True
     while main_loop:
         # This clears the screen on every new instance of the loop
         clear()
-        menu_item = EntryChanger()
         # This is the primary menu prompting the user what they want to do.
         print('                                 Main Menu\n'
               '-----------------------------------------' +
@@ -93,7 +93,7 @@ def main():
 
         if menu_selector == 'd' or menu_selector == 'd)' \
                 or menu_selector == 'all':
-            first_name, last_name = name_getter.name_picker()
+            first_name, last_name = menu_item.name_picker()
 
         if menu_selector == 'e' or menu_selector == 'e)' \
                 or menu_selector == 'q' or menu_selector == 'quit':

@@ -10,6 +10,12 @@ class EntryChanger():
     The user imput is sent into the DatabaseIntermediary class to be
     processed into the database file. """
 
+    def __init__(self):
+        """ This initalizes EntryChanger."""
+        self.first_name = 'First'
+        self.last_name = 'Last'
+        self.db = DatabaseIntermediary()
+
     def run_entry_changer(self, first_name, last_name, command,
                           all_names=False):
         """ This is responsible for controling which method entry_changer is
@@ -30,6 +36,8 @@ class EntryChanger():
             self.show_all()
         elif command == 'search':
             self.search()
+        elif command == 'get names':
+            self.name_picker()
         # This returns the names to database_work_log incase the user exits
         # to the main menu, but wants to continue.
         return self.first_name, self.last_name
@@ -55,13 +63,12 @@ class EntryChanger():
 
     def name_picker(self):
         """ This gathers a single users first and last name. """
-        name_getter = DatabaseIntermediary()
         while True:
             clear_screen = True
             while True:
                 if clear_screen:
                     self.clear()
-                    names = name_getter.name_returner()
+                    names = self.db.name_returner()
                     self.clear()
                     # name_counter choses if a name is displayed beside another
                     name_number = 0
@@ -114,6 +121,7 @@ class EntryChanger():
                         for name in found_names:
                             print(('  {}.  {} {}.  '.format(name_counter,
                                   name[0], name[1])))
+                            name_counter += 1
                         use = input('  ')
                         # Tries to correlate the int() version of use into a
                         # number if possible
@@ -162,7 +170,7 @@ class EntryChanger():
                 return self.first_name, self.last_name
                 break
 
-    def add(self, edit=False):
+    def add(self):
         """ This gathers information from the user and sends it to
         DatabaseIntermediary() to be stored into the database file."""
         valid_variable = True
@@ -213,25 +221,89 @@ class EntryChanger():
                           "  This section is optional.  ")
             # This sends all of the information to DatabaseIntermediary for
             # further processing
-            database = DatabaseIntermediary()
-            if edit is False:
-                database.add(self.first_name, self.last_name,
-                             user_date=user_date, title=title,
-                             minutes=minutes, notes=notes)
+            self.db.add(self.first_name, self.last_name,
+                        user_date=user_date, title=title,
+                        minutes=minutes, notes=notes)
+
+    def editor(self, old_item):
+        """ This gathers information from the user and sends it to
+        DatabaseIntermediary() to be stored into the database file.
+        This one differs from add() only because it shows the user
+        there data that is to be edited."""
+        valid_variable = True
+        continue_add = True
+        # Collects the date
+        while True:
+            entry_date = datetime.datetime.strftime(old_item.entry_date,
+                                                    '%m/%d/%Y')
+            self.clear()
+            if valid_variable is False:
+                print("\n    That is not a valid date." +
+                      "  Please enter a valid one.\n")
+            user_date = input("\n    Please enter the date in " +
+                              "  MM/DD/YYYY format.\n" +
+                              "  Current date is {}.\n".format(entry_date) +
+                              "  Enter 'q' to return to the main menu.\n  ")
+            try:
+                datetime.datetime.strptime(user_date, '%m/%d/%Y')
+            except ValueError:
+                if user_date == 'q' or user_date == 'quit':
+                    continue_add = False
+                    break
+                else:
+                    valid_variable = False
+                    continue
             else:
-                return user_date, title, minutes, notes
+                break
+
+        # continue_add breaks out of the loop if the user chose to quit.
+        if continue_add:
+            # Collects the event title
+            title = input("\n  Please enter a title for the work log.\n" +
+                          "  Current title is :{}\n  ".format(old_item.title))
+
+            # Collects the minutes spent on tasks
+            valid_variable = True
+            while True:
+                if valid_variable is False:
+                    self.clear()
+                    print("\n  That is not a valid number for minutes.\n" +
+                          "  Please enter a number like '15'.")
+                try:
+                    minutes = int(input("\n  Please enter the minutes spent " +
+                                        "on the task.  \n" +
+                                        "  Current minutes is {}\n  ".format(
+                                          old_item.minutes)))
+                except ValueError:
+                    valid_variable = False
+                else:
+                    break
+
+            # Gathers the information associated with the tasks
+            notes = input("\n  Enter any notes you want about the task.\n" +
+                          "  Current notes are :{} \n"
+                          "  This section is optional.\n  ".format(
+                            old_item.notes))
+            # This sends all of the information to DatabaseIntermediary for
+            # further processing
+        self.db.editor(old_item, n_first=old_item.first_name,
+                       n_last=old_item.last_name,
+                       n_entry_date=user_date, n_title=title,
+                       n_minutes=minutes, n_notes=notes, edit=True)
+        # This returns to new user information so it can be used to edit
+        # what is given to show.
+        return user_date, title, user_date, notes
 
     def show_all(self):
         """ This gets all of the work log entries from DatabaseIntermediary
         and sends it to self.show()."""
-        database = DatabaseIntermediary()
         # self.found_results is a dictionary with the keys of first_name,
         # last_name, date, title, minutes, and notes.
         if self.all_names:
-            self.found_results = database.return_all()
+            self.found_results = self.db.return_all()
         else:
-            self.found_results = database.return_all(self.first_name,
-                                                     self.last_name)
+            self.found_results = self.db.return_all(self.first_name,
+                                                    self.last_name)
         self.show()
 
     def search(self):
@@ -269,7 +341,6 @@ class EntryChanger():
             if menu_selector in menu_options:
                 break
 
-        database = DatabaseIntermediary()
         # Finds by date
         if menu_selector == 'a' or menu_selector == 'a)' \
            or menu_selector == 'date':
@@ -320,7 +391,7 @@ class EntryChanger():
             if dates:
                 user_date = inline_date_getter(date_number=1)
                 user_date_2 = inline_date_getter(date_number=2)
-                self.found_results = database.search(user_date=user_date,
+                self.found_results = self.db.search(user_date=user_date,
                                                      second_date=user_date_2,
                                                      first_name= # noqa
                                                      self.first_name, # noqa
@@ -330,7 +401,7 @@ class EntryChanger():
                                                      self.all_names) # noqa
             else:
                 user_date = inline_date_getter()
-                self.found_results = database.search(user_date=user_date,
+                self.found_results = self.db.search(user_date=user_date,
                                                      first_name= # noqa
                                                      self.first_name, # noqa
                                                      last_name= # noqa
@@ -355,7 +426,7 @@ class EntryChanger():
                     valid_variable = False
                 else:
                     break
-            self.found_results = database.search(minutes=minutes)
+            self.found_results = self.db.search(minutes=minutes)
 
         # Find by an exact search
         if menu_selector == 'c' or menu_selector == 'c)' \
@@ -364,7 +435,7 @@ class EntryChanger():
             key_phrase = input("  Enter the 'exact' phrase you want to " +
                                'search for.\n' +
                                '  This searches titles and notes.  ')
-            self.found_results = database.search(key_phrase=key_phrase)
+            self.found_results = self.db.search(key_phrase=key_phrase)
 
         # Find by a regular expression pattern.
         if menu_selector == 'd' or menu_selector == 'd' \
@@ -372,7 +443,7 @@ class EntryChanger():
            or menu_selector == 'regular expression':
             regex = input('\n  Enter the python regular expression ' +
                           'string you want to search with.  ')
-            self.found_results = database.search(regex=regex)
+            self.found_results = self.db.search(regex=regex)
 
         # This returns all work log items and sends them to show.
         if menu_selector == 'e' or menu_selector == 'e)' \
@@ -418,8 +489,7 @@ class EntryChanger():
         user the results of a previous search. It also allows the user
         to to continue searching, edit, delete, or exit out of the
         show menu."""
-        found_results = self.found_results
-        length = len(found_results)
+        length = len(self.found_results)
         run_loop = True
 
         # This is incase the user deletes the only entry in the search
@@ -457,7 +527,7 @@ class EntryChanger():
             if index_counter > 0 and index_counter < length - 1:
                 menu_options = 'both'
 
-            self.show_template(index_counter, length, found_results
+            self.show_template(index_counter, length, self.found_results
                                [index_counter], menu_options)
             menu_selector = input("  ").lower()
 
@@ -512,33 +582,21 @@ class EntryChanger():
                 run_loop = False
                 self.search()
             elif menu_selector == 'e' or menu_selector == 'edit':
-                try:
-                    new_user_date, new_title, new_minutes, new_notes = \
-                     self.add(edit=True)
-                except TypeError:
-                    continue
-                else:
-                    database = DatabaseIntermediary()
-                    database.editor(entry_date, title, minutes, notes,
-                                    new_user_date, new_title, new_minutes,
-                                    new_notes, edit=True)
-                    # This is a new dictionary to replace one deleted
-                    # in self.found_results
-                    new_dict = {'date': '{}'.format(new_user_date),
-                                'title': '{}'.format(new_title),
-                                'minutes': '{}'.format(new_minutes),
-                                'notes': '{}'.format(new_notes)}
-
-                    self.found_results[index_counter] = new_dict
-                    self.show(index_counter=index_counter)
-                    break
+                user_date, title, minutes, notes = \
+                    self.editor(self.found_results[index_counter])
+                user_date = datetime.datetime.strptime(user_date, '%m/%d/%Y')
+                self.found_results[index_counter].entry_date = user_date
+                self.found_results[index_counter].title = title
+                self.found_results[index_counter].minutes = minutes
+                self.found_results[index_counter].notes = notes
+                self.show(index_counter=index_counter)
+                break
 
             elif menu_selector == 'd' or menu_selector == 'delete':
                 delete = input('\n  Are you sure you want to delete this ' +
                                "entry? N/y'").lower()
                 if delete == 'y':
-                    database = DatabaseIntermediary()
-                    database.editor(entry_date, title, minutes, notes)
+                    self.db.editor(self.found_results[index_counter])
                     del self.found_results[index_counter]
                     index_counter -= 1
                     self.show(index_counter=index_counter)
