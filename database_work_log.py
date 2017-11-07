@@ -40,7 +40,7 @@ def main():
         print('                                 Main Menu\n'
               '-----------------------------------------' +
               '---------------------------------------\n')
-        print('    Please enter the option you would like to select')
+        print('    Please enter the option you would like to select,')
         if all_names:
             print('.\n\n')
         else:
