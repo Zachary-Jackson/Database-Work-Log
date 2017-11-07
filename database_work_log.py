@@ -28,9 +28,7 @@ def main():
     end the script."""
 
     menu_item = EntryChanger()
-    # F and L are temporary names for testing and will be deleted later.
-    first_name, last_name = menu_item.run_entry_changer('F', 'L', 'get names')
-    # temp all names
+    first_name, last_name = menu_item.run_entry_changer(command='get names')
     all_names = False
     main_loop = True
     while main_loop:
@@ -40,7 +38,7 @@ def main():
         print('                                 Main Menu\n'
               '-----------------------------------------' +
               '---------------------------------------\n')
-        print('    Please enter the option you would like to select,')
+        print('    Please enter the option you would like to select')
         if all_names:
             print('.\n\n')
         else:

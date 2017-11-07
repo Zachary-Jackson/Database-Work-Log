@@ -15,9 +15,6 @@ class Entry(Model): # noqa
     """ This is the template for an entry."""
     first_name = CharField(max_length=255) # noqa
     last_name = CharField(max_length=255) # noqa
-
-# add combined later.
-
     entry_date = DateTimeField() # noqa
     title = TextField() # noqa
     minutes = IntegerField() # noqa

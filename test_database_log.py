@@ -2,9 +2,9 @@ import datetime
 import unittest
 
 
-from entry_changer import EntryChanger
+from entry_changer import EntryChanger # noqa
 from database_intermediary import DatabaseIntermediary
-import database_work_log
+import database_work_log # noqa
 
 
 class EntryChangerTest(unittest.TestCase):
@@ -91,9 +91,10 @@ class DatabaseIntermediaryTest(unittest.TestCase):
     def test_search_regex(self):
         """ This tests to see if search crashes."""
         # search via regex emails.
-        test = self.data.search(regex='[-\w\d.+]+@[-\w\d.]+', all_names=True)
+        test = self.data.search(regex='[-\w\d.+]+@[-\w\d.]+', all_names=True) # noqa
         # taking out the self.assertIn until I figure out the order of the
         # tests. See test_zeditor() for more information.
+
         # self.assertIn('random@mail.com', test[0].title)
 
         # search via regex phone numbers.
@@ -118,11 +119,11 @@ class DatabaseIntermediaryTest(unittest.TestCase):
         # I took out a secondary assertion test in test_search_regex()
         # until I figure out which order the tests are completed in.
         test = self.data.search(key_phrase='testing entries.', all_names=True)
-        self.data.editor(old_item = test[0])
+        self.data.editor(old_item=test[0])
 
         test_2 = self.data.search(key_phrase='This is an email test.',
                                   all_names=True)
-        self.data.editor(old_item = test_2[0], n_first='Nik',
+        self.data.editor(old_item=test_2[0], n_first='Nik',
                          n_last='Silver', n_entry_date='01/04/0784',
                          n_title='Not correct', n_minutes=23,
                          n_notes='This is the new test notes.', edit=True)
@@ -131,7 +132,7 @@ class DatabaseIntermediaryTest(unittest.TestCase):
         # then editor works and I don't have to self.assert anything.
         test_3 = self.data.search(key_phrase='This is the new test notes.',
                                   all_names=True)
-        self.data.editor(old_item = test_3[0])
+        self.data.editor(old_item=test_3[0])
 
     class Database_work_log_test(unittest.TestCase):
         """ Tests database_work_log."""

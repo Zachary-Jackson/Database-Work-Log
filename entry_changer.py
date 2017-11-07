@@ -16,7 +16,7 @@ class EntryChanger():
         self.last_name = 'Last'
         self.db = DatabaseIntermediary()
 
-    def run_entry_changer(self, first_name, last_name, command,
+    def run_entry_changer(self, first_name=None, last_name=None, command=None,
                           all_names=False):
         """ This is responsible for controling which method entry_changer is
         started off with. It is also responsible for returning any possible
@@ -124,7 +124,7 @@ class EntryChanger():
                             name_counter += 1
                         use = input('  ')
                         # Tries to correlate the int() version of use into a
-                        # number if possible
+                        # number if possible.
                         try:
                             use = int(use)
                         except ValueError:
@@ -229,7 +229,7 @@ class EntryChanger():
         """ This gathers information from the user and sends it to
         DatabaseIntermediary() to be stored into the database file.
         This one differs from add() only because it shows the user
-        there data that is to be edited."""
+        the data that is to be edited."""
         valid_variable = True
         continue_add = True
         # Collects the date
