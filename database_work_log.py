@@ -18,8 +18,10 @@ def welcome():
   Enter anything to continue or enter 'q' to quit. """).lower()
     if menu_selector != 'q':
         main()
+        return True
     else:
         print("\nUntil next time, bon voyage!")
+        return False
 
 
 def main():
@@ -97,6 +99,7 @@ def main():
                 or menu_selector == 'q' or menu_selector == 'quit':
             print("\nThank you for using the work log application!")
             main_loop = False
+    return True
 
 
 if __name__ == '__main__':

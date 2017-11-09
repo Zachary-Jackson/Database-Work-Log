@@ -12,9 +12,21 @@ class EntryChanger():
 
     def __init__(self):
         """ This initalizes EntryChanger."""
-        self.first_name = 'First'
-        self.last_name = 'Last'
         self.db = DatabaseIntermediary()
+        self.first_name = ''
+        self.last_name = ''
+        self.all_names = True
+
+    def name_setter(self, first_name=None, last_name=None, all_names=None):
+        """ This sets the first name, last name, and if all names are used."""
+        if first_name:
+            self.first_name = first_name
+            self.last_name = last_name
+        if all_names:
+            self.all_names = True
+        elif all_names is False:
+            self.all_names = False
+        return self.first_name, self.last_name, self.all_names
 
     def run_entry_changer(self, first_name=None, last_name=None, command=None,
                           all_names=False):
@@ -22,13 +34,7 @@ class EntryChanger():
         started off with. It is also responsible for returning any possible
         changes in the first and last name sence entry_changer has been
         run"""
-        self.first_name = first_name
-        self.last_name = last_name
-        if all_names:
-            self.all_names = True
-        else:
-            self.all_names = False
-
+        self.name_setter(first_name, last_name, all_names)
         # This controls which method entry_changer is started with.
         if command == 'add':
             self.add()
@@ -45,9 +51,10 @@ class EntryChanger():
     def clear(self):
         """ This clears the screen for easier viewing. """
         os.system('cls' if os.name == 'nt' else 'clear')
+        return True
 
     def name_picker_all(self):
-        """ This choices if the user want to search by one or all names. """
+        """ This choices if the user wants to search by one or all names. """
         self.clear()
         if self.all_names:
             all_names = input("\n  Do you want to search by a single name? " +
@@ -130,7 +137,6 @@ class EntryChanger():
                         except ValueError:
                             need_last_name = True
                             break
-                            pass
                         else:
                             try:
                                 last_name = found_names[use-1][1]
@@ -165,8 +171,7 @@ class EntryChanger():
             good_name = input("\n  Is {} {} the name you want to use? Y/n  "
                               .format(first_name, last_name)).lower()
             if good_name != 'n':
-                self.first_name = first_name
-                self.last_name = last_name
+                self.name_setter(first_name, last_name)
                 return self.first_name, self.last_name
                 break
 
@@ -483,6 +488,8 @@ class EntryChanger():
         elif menu_options == 'both':
             print("  You can move left or right.\n" +
                   "  Enter 'r', 'right', 'l', or 'left'")
+        menu_selector = input("  ").lower()
+        return menu_selector
 
     def show(self, index_counter=0):
         """ Using the information in self.found_results this shows the
@@ -527,9 +534,10 @@ class EntryChanger():
             if index_counter > 0 and index_counter < length - 1:
                 menu_options = 'both'
 
-            self.show_template(index_counter, length, self.found_results
-                               [index_counter], menu_options)
-            menu_selector = input("  ").lower()
+            menu_selector = self.show_template(index_counter, length,
+                                               self.found_results
+                                               [index_counter],
+                                               menu_options)
 
             # This controls if the user can actually go left and right.
             # If not, then the user is told and can choice what to do next.

@@ -1,5 +1,6 @@
 import datetime
 import unittest
+import unittest.mock
 
 
 from entry_changer import EntryChanger # noqa
@@ -9,14 +10,64 @@ import database_work_log # noqa
 
 class EntryChangerTest(unittest.TestCase):
     """ Tests the EntryChanger class."""
-    def setup(self):
-        # ec stands for EntryChanger
+    def setUp(self):
+        """ Sets us the tests for EntryChangerTest."""
+        self.ec = EntryChanger()
+        self.db = DatabaseIntermediary()
+
+    def test_init(self):
+        """ This tests that __init__ is working. """
+        self.assertIsNotNone(DatabaseIntermediary(), self.ec.db)
+
+    def test_name_setter(self):
+        """ This tests name_setter."""
+        first, last, all_names = self.ec.name_setter('Albert', 'Brown',
+                                               all_names=False)
+        self.assertEqual('Albert', self.ec.first_name)
+        self.assertEqual('Brown', self.ec.last_name)
+        self.assertFalse(self.ec.all_names)
+        first, last, all_names = self.ec.name_setter('Albert', 'Brown',
+                                               all_names=True)
+        self.assertTrue(self.ec.all_names)
+
+    def test_run_entry_changer(self):
+        """ Tests to see if run_entry_changer returns a new first and last
+        name."""
+        first, last = self.ec.run_entry_changer('Charles',
+                                                'Forester',
+                                                all_names=False)
+        self.assertEqual('Charles', first)
+        self.assertEqual('Forester', last)
+
+    def test_clear(self):
+        """ Checks is clear crashes."""
+        self.assertTrue(self.ec.clear())
+
+    def test_name_picker(self):
+        """ Checks name_picker."""
         pass
+
+    def test_show_template(self):
+        """ Tests show_template."""
+        with unittest.mock.patch('builtins.input', return_value='e'):
+            self.db.return_all()
+            test = self.ec.show_template(0, 3, self.db.db_contents[0],
+                                         menu_options='right')
+            self.assertEqual(test, 'e')
+
+            test = self.ec.show_template(2, 3, self.db.db_contents[0],
+                                         menu_options='both')
+            self.assertEqual(test, 'e')
+            test = self.ec.show_template(2, 3, self.db.db_contents[0],
+                                         menu_options='left')
+            self.assertEqual(test, 'e')
+
 
 
 class DatabaseIntermediaryTest(unittest.TestCase):
     """ Tests the DatabaseIntermediary class."""
     def setUp(self):
+        """ Sets up the tests for DatabaseIntermediaryTest."""
         self.data = DatabaseIntermediary()
 
     def test_add(self):
