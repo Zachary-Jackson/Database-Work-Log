@@ -68,6 +68,41 @@ class EntryChanger():
             if all_names != 'n':
                 self.all_names = True
 
+    def name_num_picker(self, found_names):
+        """ This gets the user's chosen input if they want to
+        choice a number. It returns the name and need_last_name."""
+        last_name = ''
+        if found_names:
+            self.clear()
+            print('  Please enter the number of the name you ' +
+                  'want to use.\n' +
+                  '  Or enter anything else to continue.\n')
+            name_counter = 1
+            for name in found_names:
+                print(('  {}.  {} {}.  '.format(name_counter,
+                      name[0], name[1])))
+                name_counter += 1
+            use = input('  ')
+            # Tries to correlate the int() version of use into a
+            # number if possible.
+            try:
+                use = int(use)
+            except ValueError:
+                need_last_name = True
+                return last_name, need_last_name
+            else:
+                try:
+                    last_name = found_names[use-1][1]
+                except IndexError:
+                    need_last_name = True
+                    return last_name, need_last_name
+                else:
+                    need_last_name = False
+                    return last_name, need_last_name
+        else:
+            need_last_name = True
+            return last_name, need_last_name
+
     def name_picker(self):
         """ This gathers a single users first and last name. """
         while True:
@@ -99,16 +134,12 @@ class EntryChanger():
                             name_number += 1
                     print('')
 
-                else:
-                    for _ in range(3, 0, -1):
-                        self.clear()
-                        print("\n\n  Please enter a first name only.")
-                        print("  You can enter another name in {} seconds"
-                              .format(_))
-                        time.sleep(1)
-                        self.clear()
                 first_name = input("\n  Please enter a first name.  \n  ")\
                     .title().strip()
+
+                # found_names is used a couple lines down.
+                found_names = []
+
                 if ' ' in first_name or first_name == '':
                     clear_screen = False
                 else:
@@ -118,37 +149,9 @@ class EntryChanger():
                     for name in names:
                         if first_name in name[0]:
                             found_names.append(name)
-                    # This
-                    if found_names:
-                        self.clear()
-                        print('  Please enter the number of the name you ' +
-                              'want to use.\n' +
-                              '  Or enter anything else to continue.\n')
-                        name_counter = 1
-                        for name in found_names:
-                            print(('  {}.  {} {}.  '.format(name_counter,
-                                  name[0], name[1])))
-                            name_counter += 1
-                        use = input('  ')
-                        # Tries to correlate the int() version of use into a
-                        # number if possible.
-                        try:
-                            use = int(use)
-                        except ValueError:
-                            need_last_name = True
-                            break
-                        else:
-                            try:
-                                last_name = found_names[use-1][1]
-                            except IndexError:
-                                need_last_name = True
-                                break
-                            else:
-                                need_last_name = False
-                                break
-                    else:
-                        need_last_name = True
-                        break
+
+                last_name, need_last_name = self.name_num_picker(found_names)
+                break
 
             clear_screen = False
             while need_last_name:

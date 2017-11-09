@@ -29,6 +29,49 @@ class EntryChangerTest(unittest.TestCase):
         first, last, all_names = self.ec.name_setter('Albert', 'Brown',
                                                      all_names=True)
         self.assertTrue(self.ec.all_names)
+        # This tests if all_names can be false.
+        first, last, all_names = self.ec.name_setter('Albert', 'Brown',
+                                                     all_names=False)
+        self.assertFalse(self.ec.all_names)
+
+    def test_name_num_picker(self):
+        """ This test name_num_picker."""
+        name = [('Charles', 'Jackson')]
+        # Tests a normal user input and name returned
+        with unittest.mock.patch('builtins.input', return_value='1'):
+            last_name, need_name = self.ec.name_num_picker(name)
+            self.assertFalse(need_name)
+            self.assertEqual('Jackson', last_name)
+        # Tests a non integer input
+        with unittest.mock.patch('builtins.input', return_value='four'):
+            last_name, need_name = self.ec.name_num_picker(name)
+            self.assertTrue(need_name)
+        # Tests a IndexError input
+        with unittest.mock.patch('builtins.input', return_value='4'):
+            test_name, need_name = self.ec.name_num_picker(name)
+            self.assertTrue(need_name)
+
+    def test_name_picker_all(self):
+        """ This tests to see if name_picker_all works."""
+        with unittest.mock.patch('builtins.input', return_value='y'):
+            self.ec.all_names = True
+            self.ec.name_picker_all()
+            self.assertFalse(self.ec.all_names)
+
+        with unittest.mock.patch('builtins.input', return_value='n'):
+            self.ec.all_names = True
+            self.ec.name_picker_all()
+            self.assertTrue(self.ec.all_names)
+
+        with unittest.mock.patch('builtins.input', return_value='y'):
+            self.ec.all_names = False
+            self.ec.name_picker_all()
+            self.assertTrue(self.ec.all_names)
+
+        with unittest.mock.patch('builtins.input', return_value='n'):
+            self.ec.all_names = False
+            self.ec.name_picker_all()
+            self.assertFalse(self.ec.all_names)
 
     def test_run_entry_changer(self):
         """ Tests to see if run_entry_changer returns a new first and last
