@@ -22,12 +22,12 @@ class EntryChangerTest(unittest.TestCase):
     def test_name_setter(self):
         """ This tests name_setter."""
         first, last, all_names = self.ec.name_setter('Albert', 'Brown',
-                                               all_names=False)
+                                                     all_names=False)
         self.assertEqual('Albert', self.ec.first_name)
         self.assertEqual('Brown', self.ec.last_name)
         self.assertFalse(self.ec.all_names)
         first, last, all_names = self.ec.name_setter('Albert', 'Brown',
-                                               all_names=True)
+                                                     all_names=True)
         self.assertTrue(self.ec.all_names)
 
     def test_run_entry_changer(self):
@@ -61,7 +61,6 @@ class EntryChangerTest(unittest.TestCase):
             test = self.ec.show_template(2, 3, self.db.db_contents[0],
                                          menu_options='left')
             self.assertEqual(test, 'e')
-
 
 
 class DatabaseIntermediaryTest(unittest.TestCase):
@@ -185,10 +184,42 @@ class DatabaseIntermediaryTest(unittest.TestCase):
                                   all_names=True)
         self.data.editor(old_item=test_3[0])
 
-    class Database_work_log_test(unittest.TestCase):
-        """ Tests database_work_log."""
-        def setup(self):
-            pass
+
+class Database_work_log_test(unittest.TestCase):
+    """ Tests database_work_log."""
+
+    def setUp(self):
+        """ sets up the Database_work_log_test."""
+        self.ec = EntryChanger()
+        self.ec.first_name = 'Bob'
+        self.ec.last_name = 'Harvey'
+        self.ec.all_names = True
+
+    def test_welcome(self):
+        """ Test welcome with user continue."""
+        with unittest.mock.patch('builtins.input', return_value='y'):
+            self.assertTrue(database_work_log.welcome())
+
+    def test_not_welcome(self):
+        """ Tests welcome with user exiting the program."""
+        with unittest.mock.patch('builtins.input', return_value='q'):
+            self.assertFalse(database_work_log.welcome())
+
+    def test_main_all_names_true(self):
+        """ Tests main_all_names."""
+        with unittest.mock.patch('builtins.input', return_value='all'):
+            self.assertTrue(database_work_log.main_all_names())
+
+    def test_main_all_names_false(self):
+        """ Tests main_all_names."""
+        with unittest.mock.patch('builtins.input', return_value='my'):
+            self.assertFalse(database_work_log.main_all_names())
+
+    def test_main_quit(self):
+        """ Tests to see if one can exit main()."""
+        with unittest.mock.patch('builtins.input', return_value='q'):
+            self.assertTrue(database_work_log.main(self.ec, self.ec.first_name,
+                                                   self.ec.last_name))
 
 
 if __name__ == '__main__':
