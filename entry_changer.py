@@ -543,42 +543,30 @@ class EntryChanger():
         to to continue searching, edit, delete, or exit out of the
         show menu."""
         length = len(self.found_results)
-        run_loop = True
+        # This gets if anything was found and if so continues.
+        run_loop, index_counter = self.show_run(length, index_counter)
 
-        # This is incase the user deletes the only entry in the search
-        # results.
-        if index_counter == -1:
-            if length > 0:
-                index_counter = 0
-            else:
-                run_loop = False
-
-        # This prevents the loop from running if not results are returned.
-        elif length == 0:
-            run_loop = False
+        if not run_loop:
             timer_counter = range(4, 0, -1)
             for second in timer_counter:
                 self.clear()
                 print("""
     There were no results found for your search.
-  Taking you back to the search menu. In {} seconds.""".format(second))
+    Taking you back to the search menu. In {} seconds.""".format(second))
                 time.sleep(1)
-            run_loop = False
             self.search()
+            return False
 
+        if run_loop:
+            self.show_main_loop(length, index_counter)
+            return True
+
+    def show_main_loop(self, length, index_counter):
+        """ This is the main loop for show()."""
+        run_loop = True
         while run_loop:
-            # This creates the menu_options variable for the show_template
-            # left means the user can move left.
-            # Right, both and none mean the same as there name.
-            menu_options = None
-            if index_counter == 0:
-                if index_counter < length - 1:
-                    menu_options = 'right'
-            if index_counter == length - 1:
-                if index_counter != 0:
-                    menu_options = 'left'
-            if index_counter > 0 and index_counter < length - 1:
-                menu_options = 'both'
+            # This gets which way the user can move.
+            menu_options = self.show_index(index_counter, length)
 
             menu_selector = self.show_template(index_counter, length,
                                                self.found_results
@@ -599,25 +587,7 @@ class EntryChanger():
                 else:
                     index_counter += 1
             elif menu_selector == 'g' or menu_selector == 'go':
-                clear_screen = False
-                while True:
-                    if clear_screen:
-                        self.clear()
-                        print('\n  You must enter an integer between 1 and {}'
-                              .format(length))
-                    try:
-                        entry_num = int(input('\n  Which entry do you want ' +
-                                              'to go to?' +
-                                              '\n  You can move to any entry' +
-                                              ' between' +
-                                              ' 1 and {}.'.format(length)))
-                    except ValueError:
-                        clear_screen = True
-                    else:
-                        if entry_num >= 1 and entry_num <= length:
-                            break
-                        else:
-                            clear_screen = True
+                entry_num = self.show_go(length)
                 index_counter = entry_num - 1
             elif menu_selector == 'l' or menu_selector == 'left':
                 if index_counter <= 0:
@@ -631,31 +601,14 @@ class EntryChanger():
                 else:
                     index_counter -= 1
             elif menu_selector == 'q' or menu_selector == 'quit':
-                break
+                return False
             elif menu_selector == 's' or menu_selector == 'search':
                 run_loop = False
                 self.search()
+                return True
             elif menu_selector == 'e' or menu_selector == 'edit':
-                user_date, title, minutes, notes, stop = \
-                    self.editor(self.found_results[index_counter])
-                if stop:
-                    break
-                # This sends all of the information to DatabaseIntermediary for
-                # further processing
-                self.db.editor(self.found_results[index_counter],
-                               n_first=self.found_results[index_counter]
-                               .first_name,
-                               n_last=self.found_results[index_counter]
-                               .last_name,
-                               n_entry_date=user_date, n_title=title,
-                               n_minutes=minutes, n_notes=notes, edit=True)
-                user_date = datetime.datetime.strptime(user_date, '%m/%d/%Y')
-                self.found_results[index_counter].entry_date = user_date
-                self.found_results[index_counter].title = title
-                self.found_results[index_counter].minutes = minutes
-                self.found_results[index_counter].notes = notes
-                self.show(index_counter=index_counter)
-                break
+                self.show_main_loop_edit(index_counter)
+                return True
 
             elif menu_selector == 'd' or menu_selector == 'delete':
                 delete = input('\n  Are you sure you want to delete this ' +
@@ -666,3 +619,85 @@ class EntryChanger():
                     index_counter -= 1
                     self.show(index_counter=index_counter)
                     break
+
+    def show_main_loop_edit(self, index_counter):
+        """ This handles the user's edit request and fulfills it to the
+        DatabaseIntermediary class()."""
+        user_date, title, minutes, notes, stop = \
+            self.editor(self.found_results[index_counter])
+        # This sends all of the information to DatabaseIntermediary for
+        # further processing
+        if not stop:
+            self.db.editor(self.found_results[index_counter],
+                           n_first=self.found_results[index_counter]
+                           .first_name,
+                           n_last=self.found_results[index_counter]
+                           .last_name,
+                           n_entry_date=user_date, n_title=title,
+                           n_minutes=minutes, n_notes=notes, edit=True)
+            user_date = datetime.datetime.strptime(user_date, '%m/%d/%Y')
+            self.found_results[index_counter].entry_date = user_date
+            self.found_results[index_counter].title = title
+            self.found_results[index_counter].minutes = minutes
+            self.found_results[index_counter].notes = notes
+            self.show(index_counter=index_counter)
+
+    def show_run(self, length, index_counter):
+        """ This determines if show actually runs or not. This returns
+        an index value in case the index_counter is decremented, but
+        there is still length left."""
+
+        # This is incase the user deletes the only entry in the search
+        # results.
+        if index_counter == -1:
+            if length > 0:
+                index_counter = 0
+                return True, index_counter
+            else:
+                return False, index_counter
+
+        # This prevents the loop from running if not results are returned.
+        elif length == 0:
+            return False, index_counter
+        # If none of the above happens.
+        return True, index_counter
+
+    def show_index(self, index_counter, length):
+        """ This determins which way the user can move through an index."""
+        # This creates the menu_options variable for the show_template
+        # left means the user can move left.
+        # Right, both and none mean the same as there name.
+        if index_counter == 0:
+            if index_counter < length - 1:
+                menu_options = 'right'
+                return menu_options
+        if index_counter == length - 1:
+            if index_counter != 0:
+                menu_options = 'left'
+                return menu_options
+        if index_counter > 0 and index_counter < length - 1:
+            menu_options = 'both'
+            return menu_options
+        return None
+
+    def show_go(self, length):
+        """ This gets the entry number the user wants and returns it."""
+        clear_screen = False
+        while True:
+            if clear_screen:
+                self.clear()
+                print('\n  You must enter an integer between 1 and {}'
+                      .format(length))
+            try:
+                entry_num = int(input('\n  Which entry do you want ' +
+                                      'to go to?' +
+                                      '\n  You can move to any entry' +
+                                      ' between' +
+                                      ' 1 and {}.'.format(length)))
+            except ValueError:
+                clear_screen = True
+            else:
+                if entry_num >= 1 and entry_num <= length:
+                    return entry_num
+                else:
+                    clear_screen = True

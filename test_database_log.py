@@ -26,6 +26,12 @@ class EntryChangeMock():
     def test_search_main(self, *args, **kwargs):
         return 'a'
 
+    def test_true(self, *args, **kwargs):
+        return True
+
+    def test_false(self, *args, **kwargs):
+        return False
+
 
 class EntryChangerTest(unittest.TestCase):
     """ Tests the EntryChanger class."""
@@ -33,6 +39,7 @@ class EntryChangerTest(unittest.TestCase):
     def setUp(self):
         """ Sets us the tests for EntryChangerTest."""
         self.ec = EntryChanger()
+        self.ecm = EntryChangeMock()
         self.db = DatabaseIntermediary()
         entry_list = self.db.return_all()
         self.ec.entry = entry_list[0]
@@ -287,6 +294,28 @@ class EntryChangerTest(unittest.TestCase):
             dates = self.ec.search_date_range()
         self.assertFalse(dates)
 
+    @patch('entry_changer.EntryChanger.search_date_range',
+           new=EntryChangeMock.test_true)
+    @patch('entry_changer.EntryChanger.inline_date_getter',
+           new=EntryChangeMock.test_minute)
+    @patch('database_intermediary.DatabaseIntermediary.search',
+           new=EntryChangeMock.test_minute)
+    def test_search_date_true(self):
+        """ Tests search_date with one date"""
+        test = self.ec.search_date()
+        self.assertEqual(self.ecm.test_minute(), test)
+
+    @patch('entry_changer.EntryChanger.search_date_range',
+           new=EntryChangeMock.test_false)
+    @patch('entry_changer.EntryChanger.inline_date_getter',
+           new=EntryChangeMock.test_minute)
+    @patch('database_intermediary.DatabaseIntermediary.search',
+           new=EntryChangeMock.test_minute)
+    def test_search_date_false(self):
+        """ Tests search_date with two dates."""
+        test = self.ec.search_date()
+        self.assertEqual(self.ecm.test_minute(), test)
+
     def test_search_time(self):
         """ Tests search_time."""
         with unittest.mock.patch('builtins.input', return_value=15):
@@ -307,6 +336,82 @@ class EntryChangerTest(unittest.TestCase):
             test = self.ec.show_template(2, 3, self.db.db_contents[0],
                                          menu_options='left')
             self.assertEqual(test, 'e')
+
+    @patch('entry_changer.EntryChanger.show_main_loop',
+           new=EntryChangeMock.test_minute)
+    @patch('entry_changer.EntryChanger.search',
+           new=EntryChangeMock.test_minute)
+    @patch('time.sleep',
+           new=EntryChangeMock.test_minute)
+    def test_show(self):
+        """ Tests show."""
+        # Tests when run_loop is true.
+        self.ec.found_results = ['item1', 'item2']
+        self.assertTrue(self.ec.show())
+        # Tests when run_loop is false
+        self.ec.found_results = []
+        self.assertFalse(self.ec.show())
+
+    def test_show_run(self):
+        """ Tests show_run."""
+        # Tests a normal operation
+        run, index = self.ec.show_run(10, 0)
+        self.assertTrue(run)
+        # Tests a negative index location.
+        run, index = self.ec.show_run(10, -1)
+        self.assertFalse
+        # Tests a no results senerio
+        run, index = self.ec.show_run(0, 0)
+        self.assertFalse(run)
+        # Tests if the user deletes the last entry
+        run, index = self.ec.show_run(0, -1)
+        self.assertFalse(run)
+
+    @patch('entry_changer.EntryChanger.search',
+           new=EntryChangeMock.test_minute)
+    @patch('entry_changer.EntryChanger.show',
+           new=EntryChangeMock.test_minute)
+    @patch('entry_changer.EntryChanger.editor',
+           new=EntryChangeMock.test_add)
+    @patch('entry_changer.EntryChanger.show_main_loop_edit',
+           new=EntryChangeMock.test_add)
+    @patch('database_intermediary.DatabaseIntermediary.search',
+           new=EntryChangeMock.test_minute)
+    def test_show_main_loop(self):
+        """ Tests show main_loop."""
+        self.ec.found_results = []
+        self.ec.found_results.append(self.ec.entry)
+        # This tests if the user exited out of the main loop.
+        with unittest.mock.patch('builtins.input', return_value='q'):
+            self.assertFalse(self.ec.show_main_loop(10, 0))
+        # This tests if the user started a new search.
+        with unittest.mock.patch('builtins.input', return_value='s'):
+            self.ec.found_results.append(self.ec.entry)
+            self.assertTrue(self.ec.show_main_loop(10, 0))
+        with unittest.mock.patch('builtins.input', return_value='e'):
+            self.ec.found_results.append(self.ec.entry)
+            self.assertTrue(self.ec.show_main_loop(10, 0))
+
+    def test_show_index(self):
+        """ Tests show_index."""
+        # Tests if the user can move right
+        menu_options = self.ec.show_index(0, 2)
+        self.assertEqual('right', menu_options)
+        # Tests if the user can move left
+        menu_options = self.ec.show_index(1, 2)
+        self.assertEqual('left', menu_options)
+        # Tests if the user can move both directions
+        menu_options = self.ec.show_index(5, 10)
+        self.assertEqual('both', menu_options)
+        # Tests if the user can not move.
+        menu_option = self.ec.show_index(0, 1)
+        self.assertFalse(menu_option)
+
+    def test_show_go(self):
+        """ Tests show_go."""
+        with unittest.mock.patch('builtins.input', return_value=3):
+            number = self.ec.show_go(5)
+            self.assertEqual(number, 3)
 
 
 class DatabaseIntermediaryTest(unittest.TestCase):
