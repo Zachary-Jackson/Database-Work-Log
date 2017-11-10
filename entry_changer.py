@@ -37,12 +37,16 @@ class EntryChanger():
         self.name_setter(first_name, last_name, all_names)
         # This controls which method entry_changer is started with.
         if command == 'add':
-            self.add()
-        elif command == 'show all':
+            user_date, title, minutes, notes, stop = self.add()
+            if not stop:
+                self.db.add(self.first_name, self.last_name,
+                            user_date=user_date,
+                            title=title, minutes=minutes, notes=notes)
+        if command == 'show all':
             self.show_all()
-        elif command == 'search':
+        if command == 'search':
             self.search()
-        elif command == 'get names':
+        if command == 'get names':
             self.name_picker()
         # This returns the names to database_work_log incase the user exits
         # to the main menu, but wants to continue.
@@ -181,8 +185,25 @@ class EntryChanger():
     def add(self):
         """ This gathers information from the user and sends it to
         DatabaseIntermediary() to be stored into the database file."""
+        # Gets the potential user date from the user.
+        user_date = self.add_date()
+        if not user_date:
+            return '', '', '', '', True
+
+        # If the user exited out of self.add_date() this does not run.
+        # Collects the event title
+        title = input("\n  Please enter a title for the work log.  ")
+        # Gets the minutes form the user.
+        minutes = self.add_minute()
+        # Gathers the information associated with the tasks
+        notes = input("\n  Enter any notes you want about the task.\n" +
+                      "  This section is optional.  ")
+        stop = False
+        return user_date, title, minutes, notes, stop
+
+    def add_date(self):
+        """ Returns a date to add() or False."""
         valid_variable = True
-        continue_add = True
         # Collects the date
         while True:
             self.clear()
@@ -196,50 +217,68 @@ class EntryChanger():
                 datetime.datetime.strptime(user_date, '%m/%d/%Y')
             except ValueError:
                 if user_date == 'q' or user_date == 'quit':
-                    continue_add = False
-                    break
+                    return False
                 else:
                     valid_variable = False
                     continue
             else:
-                break
+                return user_date
 
-        # continue_add breaks out of the loop if the user chose to quit.
-        if continue_add:
-            # Collects the event title
-            title = input("\n  Please enter a title for the work log.  ")
-
-            # Collects the minutes spent on tasks
-            valid_variable = True
-            while True:
-                if valid_variable is False:
-                    self.clear()
-                    print("\n  That is not a valid number for minutes.\n" +
-                          "  Please enter a number like '15'.")
-                try:
-                    minutes = int(input("\n  Please enter the minutes spent " +
-                                        "on the task.  "))
-                except ValueError:
-                    valid_variable = False
-                else:
-                    break
-
-            # Gathers the information associated with the tasks
-            notes = input("\n  Enter any notes you want about the task.\n" +
-                          "  This section is optional.  ")
-            # This sends all of the information to DatabaseIntermediary for
-            # further processing
-            self.db.add(self.first_name, self.last_name,
-                        user_date=user_date, title=title,
-                        minutes=minutes, notes=notes)
+    def add_minute(self):
+        """ This gets an answer from the user and returns minutes to
+        add()."""
+        # Collects the minutes spent on tasks
+        valid_variable = True
+        while True:
+            if valid_variable is False:
+                self.clear()
+                print("\n  That is not a valid number for minutes.\n" +
+                      "  Please enter a number like '15'.")
+            try:
+                minutes = int(input("\n  Please enter the minutes spent " +
+                                    "on the task.  "))
+            except ValueError:
+                valid_variable = False
+            else:
+                return minutes
 
     def editor(self, old_item):
         """ This gathers information from the user and sends it to
         DatabaseIntermediary() to be stored into the database file.
         This one differs from add() only because it shows the user
         the data that is to be edited."""
+        # Gets the potential user date from the user.
+        user_date = self.edit_date()
+        if not user_date:
+            return '', '', '', '', True
+
+        # If the user exited out of self.add_date() this does not run.
+        # Collects the event title
+        title = input("\n  Please enter a title for the work log.\n" +
+                      "  Current title is :{}\n  ".format(old_item.title))
+        # Gets the minutes variable from edit_minutes().
+        minutes = self.edit_minutes(old_item)
+        # Gathers the information associated with the tasks
+        notes = input("\n  Enter any notes you want about the task.\n" +
+                      "  Current notes are :{} \n"
+                      "  This section is optional.\n  ".format(
+                        old_item.notes))
+        stop = False
+        # This returns to new user information so it can be used to edit
+        # what is given to show.
+        return user_date, title, minutes, notes, stop
+        # This sends all of the information to DatabaseIntermediary for
+        # further processing
+        self.db.editor(old_item, n_first=old_item.first_name,
+                       n_last=old_item.last_name,
+                       n_entry_date=user_date, n_title=title,
+                       n_minutes=minutes, n_notes=notes, edit=True)
+        # This returns to new user information so it can be used to edit
+        # what is given to show.
+
+    def edit_date(self, old_item):
+        """ This gets a date for editor() or returns False."""
         valid_variable = True
-        continue_add = True
         # Collects the date
         while True:
             entry_date = datetime.datetime.strftime(old_item.entry_date,
@@ -256,51 +295,31 @@ class EntryChanger():
                 datetime.datetime.strptime(user_date, '%m/%d/%Y')
             except ValueError:
                 if user_date == 'q' or user_date == 'quit':
-                    continue_add = False
-                    break
+                    return False
                 else:
                     valid_variable = False
                     continue
             else:
-                break
+                return user_date
 
-        # continue_add breaks out of the loop if the user chose to quit.
-        if continue_add:
-            # Collects the event title
-            title = input("\n  Please enter a title for the work log.\n" +
-                          "  Current title is :{}\n  ".format(old_item.title))
-
-            # Collects the minutes spent on tasks
-            valid_variable = True
-            while True:
-                if valid_variable is False:
-                    self.clear()
-                    print("\n  That is not a valid number for minutes.\n" +
-                          "  Please enter a number like '15'.")
-                try:
-                    minutes = int(input("\n  Please enter the minutes spent " +
-                                        "on the task.  \n" +
-                                        "  Current minutes is {}\n  ".format(
-                                          old_item.minutes)))
-                except ValueError:
-                    valid_variable = False
-                else:
-                    break
-
-            # Gathers the information associated with the tasks
-            notes = input("\n  Enter any notes you want about the task.\n" +
-                          "  Current notes are :{} \n"
-                          "  This section is optional.\n  ".format(
-                            old_item.notes))
-            # This sends all of the information to DatabaseIntermediary for
-            # further processing
-        self.db.editor(old_item, n_first=old_item.first_name,
-                       n_last=old_item.last_name,
-                       n_entry_date=user_date, n_title=title,
-                       n_minutes=minutes, n_notes=notes, edit=True)
-        # This returns to new user information so it can be used to edit
-        # what is given to show.
-        return user_date, title, user_date, notes
+    def edit_minutes(self, old_item):
+        """ Gets a minute value and returns it to editor()."""
+        # Collects the minutes spent on tasks
+        valid_variable = True
+        while True:
+            if valid_variable is False:
+                self.clear()
+                print("\n  That is not a valid number for minutes.\n" +
+                      "  Please enter a number like '15'.")
+            try:
+                minutes = int(input("\n  Please enter the minutes spent " +
+                                    "on the task.  \n" +
+                                    "  Current minutes is {}\n  ".format(
+                                      old_item.minutes)))
+            except ValueError:
+                valid_variable = False
+            else:
+                return minutes
 
     def show_all(self):
         """ This gets all of the work log entries from DatabaseIntermediary
@@ -317,123 +336,19 @@ class EntryChanger():
     def search(self):
         """ This gathers the users input and determins how to process the
         data using DatabaseIntermediary and sends it to self.show()."""
-        # Shows the user a menu of items to choice from.
-        continue_loop = True
-        while continue_loop:
-            self.clear()
-            menu_options = ['a', 'a)', 'b', 'b)', 'c', 'c)', 'd',
-                            'd)', 'e', 'e)', 'all', 'q', 'quit',
-                            'date', 'time',
-                            'exact', 'regular', 'regular expression']
 
-            if self.all_names:
-                print('\n    You are currently searching by all names.')
-            else:
-                print("\n    You are only searching {} {}'s work logs."
-                      .format(self.first_name, self.last_name))
-            menu_selector = input("\n  Enter how you would like to search " +
-                                  "the work log database.\n\n" +
-                                  '  a) Search by date.\n' +
-                                  '  b) Search by time spent\n' +
-                                  '  c) Search by an exact search\n' +
-                                  '  d) Search by a python ' +
-                                  'regular expression\n' +
-                                  '  e) Shows all work logs.\n' +
-                                  '  f) Change the names to be searched.'
-                                  "\n     Enter 'q' to return to the" +
-                                  " main menu.  "
-                                  ).lower()
-            if menu_selector == 'f' or menu_selector == 'f)' or \
-               menu_selector == 'change':
-                self.name_picker_all()
-            if menu_selector in menu_options:
-                break
+        # Shows the user a menu of items to choice from.
+        menu_selector = self.search_main()
 
         # Finds by date
         if menu_selector == 'a' or menu_selector == 'a)' \
-           or menu_selector == 'date':
-            # This controls if the user is searching via a range of dates
-            # or one date.
-            def inline_date_getter(date_number=None):
-                """ This takes date_number which is an optional variable
-                that tells the function which date number we are getting. """
-                # this controls which string is shown to the user.
-                if date_number == 1:
-                    string = ('\n  Please enter the first date in ' +
-                              'MM/DD/YYYY format.  ')
-                elif date_number == 2:
-                    string = ('\n  Please enter the second date in ' +
-                              'MM/DD/YYYY format.  ')
-                else:
-                    string = ('\n  Please enter the date in MM/DD/YYYY format'
-                              '.  ')
-                valid_variable = True
-                while True:
-                    self.clear()
-                    if valid_variable is False:
-                        print('  That is not a valid date. Please enter a' +
-                              ' valid one.\n')
-                    user_date = input(string)
-                    try:
-                        datetime.datetime.strptime(user_date, '%m/%d/%Y')
-                    except ValueError:
-                        valid_variable = False
-                        continue
-                    else:
-                        return user_date
-
-            # This is no longer part of the inline_date_getter
-            while True:
-                self.clear()
-                dates = input("\n    Are you searching via a range of dates " +
-                              " or by a single date?\n" +
-                              "  Enter 'r' for a range of dates or 's' for " +
-                              "single.  ")
-                if dates == 'r' or dates == 'range':
-                    dates = True
-                    break
-                elif dates == 's' or dates == 'single':
-                    dates = False
-                    break
-
-            if dates:
-                user_date = inline_date_getter(date_number=1)
-                user_date_2 = inline_date_getter(date_number=2)
-                self.found_results = self.db.search(user_date=user_date,
-                                                     second_date=user_date_2,
-                                                     first_name= # noqa
-                                                     self.first_name, # noqa
-                                                     last_name= # noqa
-                                                     self.last_name, # noqa
-                                                     all_names= # noqa
-                                                     self.all_names) # noqa
-            else:
-                user_date = inline_date_getter()
-                self.found_results = self.db.search(user_date=user_date,
-                                                     first_name= # noqa
-                                                     self.first_name, # noqa
-                                                     last_name= # noqa
-                                                     self.last_name, # noqa
-                                                     all_names = # noqa
-                                                     self.all_names) # noqa
+                or menu_selector == 'date':
+            self.found_results = self.search_date()
 
         # Find by time spent
         if menu_selector == 'b' or menu_selector == 'b)' \
-           or menu_selector == 'time':
-            valid_variable = True
-            self.clear()
-            while True:
-                if valid_variable is False:
-                    self.clear()
-                    print("  That is not a valid number for minutes.\n" +
-                          "  Please enter a number like '15'.  \n")
-                try:
-                    minutes = int(input("  Please enter the minutes " +
-                                        "spent on the task.  "))
-                except ValueError:
-                    valid_variable = False
-                else:
-                    break
+                or menu_selector == 'time':
+            minutes = self.search_time()
             self.found_results = self.db.search(minutes=minutes)
 
         # Find by an exact search
@@ -463,6 +378,131 @@ class EntryChanger():
                 and menu_selector != 'e' and menu_selector != 'e)' \
                 and menu_selector != 'all':
             self.show()
+
+    def search_main(self):
+        """ This is the main menu section of search. This returns the user's
+        desired outcome. It returns False if they exit."""
+        # Shows the user a menu of items to choice from.
+        continue_loop = True
+        while continue_loop:
+            self.clear()
+            menu_options = ['a', 'a)', 'b', 'b)', 'c', 'c)', 'd',
+                            'd)', 'e', 'e)', 'all', 'date', 'time',
+                            'exact', 'regular', 'regular expression']
+            exit_options = ['q', 'quit']
+
+            if self.all_names:
+                print('\n    You are currently searching by all names.')
+            else:
+                print("\n    You are only searching {} {}'s work logs."
+                      .format(self.first_name, self.last_name))
+            menu_selector = input("\n  Enter how you would like to search " +
+                                  "the work log database.\n\n" +
+                                  '  a) Search by date.\n' +
+                                  '  b) Search by time spent\n' +
+                                  '  c) Search by an exact search\n' +
+                                  '  d) Search by a python ' +
+                                  'regular expression\n' +
+                                  '  e) Shows all work logs.\n' +
+                                  '  f) Change the names to be searched.'
+                                  "\n     Enter 'q' to return to the" +
+                                  " main menu.  "
+                                  ).lower()
+            if menu_selector == 'f' or menu_selector == 'f)' or \
+               menu_selector == 'change':
+                self.name_picker_all()
+            if menu_selector in menu_options:
+                return menu_selector
+            if menu_selector in exit_options:
+                return False
+
+    def inline_date_getter(self, date_number=None):
+        """ This takes date_number which is an optional variable
+        that tells the function which date number we are getting. """
+        # This controls which string is shown to the user.
+        if date_number == 1:
+            string = ('\n  Please enter the first date in ' +
+                      'MM/DD/YYYY format.  ')
+        elif date_number == 2:
+            string = ('\n  Please enter the second date in ' +
+                      'MM/DD/YYYY format.  ')
+        else:
+            string = ('\n  Please enter the date in MM/DD/YYYY format'
+                      '.  ')
+        valid_variable = True
+        while True:
+            self.clear()
+            if valid_variable is False:
+                print('  That is not a valid date. Please enter a' +
+                      ' valid one.\n')
+            user_date = input(string)
+            try:
+                datetime.datetime.strptime(user_date, '%m/%d/%Y')
+            except ValueError:
+                valid_variable = False
+                continue
+            else:
+                return user_date
+
+    def search_date_range(self):
+        """ This checks if the user is searching by one or two dates."""
+        # This controls if the user is searching via a range of dates
+        # or one date.
+        while True:
+            self.clear()
+            dates = input("\n    Are you searching via a range of dates " +
+                          " or by a single date?\n" +
+                          "  Enter 'r' for a range of dates or 's' for " +
+                          "single.  ")
+            if dates == 'r' or dates == 'range':
+                dates = True
+                return dates
+            elif dates == 's' or dates == 'single':
+                dates = False
+                return dates
+
+    def search_date(self):
+        """ This gathers the user's date prefrences and returns it to
+        search()."""
+        # This checks to see if the user wants one or two dates.
+        dates = self.search_date_range()
+
+        if dates:
+            user_date = self.inline_date_getter(date_number=1)
+            user_date_2 = self.inline_date_getter(date_number=2)
+            return self.db.search(user_date=user_date, second_date=user_date_2,
+                                                 first_name= # noqa
+                                                 self.first_name, # noqa
+                                                 last_name= # noqa
+                                                 self.last_name, # noqa
+                                                 all_names= # noqa
+                                                 self.all_names) # noqa
+        else:
+            user_date = self.inline_date_getter()
+            return self.db.search(user_date=user_date,
+                                    first_name=self.first_name,
+                                                 last_name= # noqa
+                                                 self.last_name, # noqa
+                                                 all_names = # noqa
+                                                 self.all_names) # noqa
+
+    def search_time(self):
+        """ This gets a time from the user and returns it."""
+        valid_variable = True
+        self.clear()
+        while True:
+            if valid_variable is False:
+                self.clear()
+                print("  That is not a valid number for minutes.\n" +
+                      "  Please enter a number like '15'.  \n")
+            try:
+                minutes = int(input("  Please enter the minutes " +
+                                    "spent on the task.  "))
+            except ValueError:
+                valid_variable = False
+            else:
+                break
+        return minutes
 
     def show_template(self, entry_num, max_entries, entry, menu_options=None):
         """ This is template that is created for and used in show(). """
@@ -593,8 +633,19 @@ class EntryChanger():
                 run_loop = False
                 self.search()
             elif menu_selector == 'e' or menu_selector == 'edit':
-                user_date, title, minutes, notes = \
+                user_date, title, minutes, notes, stop = \
                     self.editor(self.found_results[index_counter])
+                if stop:
+                    break
+                # This sends all of the information to DatabaseIntermediary for
+                # further processing
+                self.db.editor(self.found_results[index_counter],
+                               n_first=self.found_results[index_counter]
+                               .first_name,
+                               n_last=self.found_results[index_counter]
+                               .last_name,
+                               n_entry_date=user_date, n_title=title,
+                               n_minutes=minutes, n_notes=notes, edit=True)
                 user_date = datetime.datetime.strptime(user_date, '%m/%d/%Y')
                 self.found_results[index_counter].entry_date = user_date
                 self.found_results[index_counter].title = title

@@ -1,6 +1,7 @@
 import datetime
 import unittest
 import unittest.mock
+from unittest.mock import patch
 
 
 from entry_changer import EntryChanger # noqa
@@ -8,12 +9,24 @@ from database_intermediary import DatabaseIntermediary
 import database_work_log # noqa
 
 
+class EntryChangeMock():
+    """ Mock for EntryChanger."""
+    def test_date(self, *args, **kwargs):
+        return '01/04/1995'
+
+    def test_minute(self, *args, **kwargs):
+        return 15
+
+
 class EntryChangerTest(unittest.TestCase):
     """ Tests the EntryChanger class."""
+
     def setUp(self):
         """ Sets us the tests for EntryChangerTest."""
         self.ec = EntryChanger()
         self.db = DatabaseIntermediary()
+        entry_list = self.db.return_all()
+        self.ec.entry = entry_list[0]
 
     def test_init(self):
         """ This tests that __init__ is working. """
@@ -89,6 +102,114 @@ class EntryChangerTest(unittest.TestCase):
     def test_name_picker(self):
         """ Checks name_picker."""
         pass
+
+    @patch('entry_changer.EntryChanger.add_date',
+           new=EntryChangeMock.test_date)
+    @patch('entry_changer.EntryChanger.add_minute',
+           new=EntryChangeMock.test_minute)
+    def test_add(self):
+        """ This tests to see if add will return the correct values."""
+        # This checks for a correct vlaue.
+        with unittest.mock.patch('builtins.input', return_value='Snow'):
+            user_date, title, minutes, notes, stop = self.ec.add()
+        self.assertEqual(user_date, '01/04/1995')
+        self.assertEqual(title, 'Snow')
+        self.assertEqual(minutes, 15)
+        self.assertEqual(notes, 'Snow')
+        self.assertFalse(stop)
+        # This checks for an incorrect vlaue.
+        with unittest.mock.patch('builtins.input', return_value='q'):
+            user_date, title, minutes, notes, stop = self.ec.add()
+        self.assertFalse(stop)
+
+    def test_add_date(self):
+        """ Checks add_date."""
+        # Checks for a valid date.
+        with unittest.mock.patch('builtins.input', return_value='01/04/1995'):
+            user_date = self.ec.add_date()
+            self.assertEqual('01/04/1995', user_date)
+        # Checks if the user quits.
+        with unittest.mock.patch('builtins.input', return_value='q'):
+            user_date = self.ec.add_date()
+            self.assertFalse(user_date)
+
+    def test_add_minute(self):
+        """ Tests add_minute."""
+        # Checks add_minute with a valid number.
+        with unittest.mock.patch('builtins.input', return_value=15):
+            minutes = self.ec.add_minute()
+            self.assertEqual(15, minutes)
+
+    @patch('entry_changer.EntryChanger.edit_date',
+           new=EntryChangeMock.test_date)
+    @patch('entry_changer.EntryChanger.edit_minutes',
+           new=EntryChangeMock.test_minute)
+    def test_editor(self):
+        """ This tests to see if add will return the correct values."""
+        # This checks for a correct vlaue.
+        with unittest.mock.patch('builtins.input', return_value='Snow'):
+            user_date, title, minutes, notes, stop = self.ec.editor(self.
+                                                                    ec.entry)
+        self.assertEqual(user_date, '01/04/1995')
+        self.assertEqual(title, 'Snow')
+        self.assertEqual(minutes, 15)
+        self.assertEqual(notes, 'Snow')
+        self.assertFalse(stop)
+        # This checks for an incorrect vlaue.
+        with unittest.mock.patch('builtins.input', return_value='q'):
+            user_date, title, minutes, notes, stop = self.ec.editor(self.
+                                                                    ec.entry)
+        self.assertFalse(stop)
+
+    def test_edit_date(self):
+        """ Checks edit_date."""
+        # Checks for a valid date.
+        with unittest.mock.patch('builtins.input', return_value='01/04/1995'):
+            user_date = self.ec.edit_date(self.ec.entry)
+            self.assertEqual('01/04/1995', user_date)
+        # Checks if the user quits.
+        with unittest.mock.patch('builtins.input', return_value='q'):
+            user_date = self.ec.edit_date(self.ec.entry)
+            self.assertFalse(user_date)
+
+    def test_edit_minutes(self):
+        """ Tests edit_minutes."""
+        # Checks add_minute with a valid number.
+        with unittest.mock.patch('builtins.input', return_value=15):
+            minutes = self.ec.edit_minutes(self.ec.entry)
+            self.assertEqual(15, minutes)
+
+    def test_inline_date_getter(self):
+        """ Tests inline_date_getter()."""
+        # Tests with only one date
+        with unittest.mock.patch('builtins.input', return_value='03/18/2038'):
+            date_str = self.ec.inline_date_getter()
+        self.assertEqual('03/18/2038', date_str)
+        # Tests with first of two dates
+        with unittest.mock.patch('builtins.input', return_value='03/18/2038'):
+            date_str = self.ec.inline_date_getter(2)
+        self.assertEqual('03/18/2038', date_str)
+        # Tests with second of two dates
+        with unittest.mock.patch('builtins.input', return_value='03/18/2038'):
+            date_str = self.ec.inline_date_getter(3)
+        self.assertEqual('03/18/2038', date_str)
+
+    def test_seach_date_range(self):
+        """ Tests search_date_range."""
+        # Tests to see if the user wants two dates.
+        with unittest.mock.patch('builtins.input', return_value='r'):
+            dates = self.ec.search_date_range()
+        self.assertTrue(dates)
+        # Tests to see if the user wants one date."""
+        with unittest.mock.patch('builtins.input', return_value='s'):
+            dates = self.ec.search_date_range()
+        self.assertFalse(dates)
+
+    def test_search_time(self):
+        """ Tests search_time."""
+        with unittest.mock.patch('builtins.input', return_value=15):
+            minutes = self.ec.search_time()
+        self.assertEqual(15, minutes)
 
     def test_show_template(self):
         """ Tests show_template."""
