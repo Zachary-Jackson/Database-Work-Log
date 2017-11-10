@@ -17,6 +17,15 @@ class EntryChangeMock():
     def test_minute(self, *args, **kwargs):
         return 15
 
+    def test_add(self, *args, **kwargs):
+        return '04/28/1830', 'title', 13, 'notes', False
+
+    def test_add_quit(self, *args, **kwargs):
+        return '04/28/1830', 'title', 13, 'notes', True
+
+    def test_search_main(self, *args, **kwargs):
+        return 'a'
+
 
 class EntryChangerTest(unittest.TestCase):
     """ Tests the EntryChanger class."""
@@ -31,6 +40,45 @@ class EntryChangerTest(unittest.TestCase):
     def test_init(self):
         """ This tests that __init__ is working. """
         self.assertIsNotNone(DatabaseIntermediary(), self.ec.db)
+
+    @patch('entry_changer.EntryChanger.add',
+           new=EntryChangeMock.test_add)
+    @patch('database_intermediary.DatabaseIntermediary.add',
+           new=EntryChangeMock.test_minute)
+    @patch('entry_changer.EntryChanger.show_all',
+           new=EntryChangeMock.test_add)
+    @patch('entry_changer.EntryChanger.search',
+           new=EntryChangeMock.test_add)
+    @patch('entry_changer.EntryChanger.name_picker',
+           new=EntryChangeMock.test_add)
+    def test_run_entry_changer(self):
+        """ This tests run entry changer."""
+        # This tests add command without quit.
+        first, last = self.ec.run_entry_changer('Bob', 'Crainer', 'add')
+        self.assertEqual('Bob', first)
+        self.assertEqual('Crainer', last)
+        # This tests show_all command.
+        first, last = self.ec.run_entry_changer('Bob', 'Crainer', 'show_all')
+        self.assertEqual('Bob', first)
+        self.assertEqual('Crainer', last)
+        # This tests search command.
+        first, last = self.ec.run_entry_changer('Bob', 'Crainer', 'search')
+        self.assertEqual('Bob', first)
+        self.assertEqual('Crainer', last)
+        # This tests get names command.
+        first, last = self.ec.run_entry_changer('Bob', 'Crainer', 'get names')
+        self.assertEqual('Bob', first)
+        self.assertEqual('Crainer', last)
+
+    @patch('entry_changer.EntryChanger.add',
+           new=EntryChangeMock.test_add_quit)
+    @patch('database_intermediary.DatabaseIntermediary.add',
+           new=EntryChangeMock.test_minute)
+    def test_run_entry_changer_quit(self):
+        """ This tests add command with quit for run_entry_changer."""
+        first, last = self.ec.run_entry_changer('Bob', 'Crainer', 'add')
+        self.assertEqual('Bob', first)
+        self.assertEqual('Crainer', last)
 
     def test_name_setter(self):
         """ This tests name_setter."""
@@ -85,15 +133,6 @@ class EntryChangerTest(unittest.TestCase):
             self.ec.all_names = False
             self.ec.name_picker_all()
             self.assertFalse(self.ec.all_names)
-
-    def test_run_entry_changer(self):
-        """ Tests to see if run_entry_changer returns a new first and last
-        name."""
-        first, last = self.ec.run_entry_changer('Charles',
-                                                'Forester',
-                                                all_names=False)
-        self.assertEqual('Charles', first)
-        self.assertEqual('Forester', last)
 
     def test_clear(self):
         """ Checks is clear crashes."""
@@ -178,6 +217,49 @@ class EntryChangerTest(unittest.TestCase):
         with unittest.mock.patch('builtins.input', return_value=15):
             minutes = self.ec.edit_minutes(self.ec.entry)
             self.assertEqual(15, minutes)
+
+    @patch('entry_changer.EntryChanger.search_date',
+           new=EntryChangeMock.test_minute)
+    @patch('entry_changer.EntryChanger.show',
+           new=EntryChangeMock.test_minute)
+    @patch('entry_changer.EntryChanger.search_time',
+           new=EntryChangeMock.test_minute)
+    @patch('database_intermediary.DatabaseIntermediary.search',
+           new=EntryChangeMock.test_minute)
+    def test_search(self):
+        """ This tests to see if search can go to the end without errors."""
+        with unittest.mock.patch('builtins.input', return_value='a'):
+            good = self.ec.search()
+            self.assertTrue(good)
+        with unittest.mock.patch('builtins.input', return_value='b'):
+            good = self.ec.search()
+            self.assertTrue(good)
+        with unittest.mock.patch('builtins.input', return_value='c'):
+            good = self.ec.search()
+            self.assertTrue(good)
+        with unittest.mock.patch('builtins.input', return_value='d'):
+            good = self.ec.search()
+            self.assertTrue(good)
+        with unittest.mock.patch('builtins.input', return_value='e'):
+            good = self.ec.search()
+            self.assertTrue(good)
+        with unittest.mock.patch('builtins.input', return_value='q'):
+            good = self.ec.search()
+            self.assertFalse(good)
+
+    def test_search_main(self):
+        """ Tests search_main."""
+        # This tests search with a normal variable.
+        with unittest.mock.patch('builtins.input', return_value='a)'):
+            self.ec.all_names = True
+            menu_selector = self.ec.search_main()
+            self.assertEqual('a)', menu_selector)
+        # This tests seach if the user exits out of main.
+        # It also tests if the user is searching by one name.
+        with unittest.mock.patch('builtins.input', return_value='quit'):
+            self.ec.all_names = False
+            menu_selector = self.ec.search_main()
+            self.assertFalse(menu_selector)
 
     def test_inline_date_getter(self):
         """ Tests inline_date_getter()."""

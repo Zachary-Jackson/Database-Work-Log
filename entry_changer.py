@@ -339,6 +339,8 @@ class EntryChanger():
 
         # Shows the user a menu of items to choice from.
         menu_selector = self.search_main()
+        if not menu_selector:
+            return False
 
         # Finds by date
         if menu_selector == 'a' or menu_selector == 'a)' \
@@ -372,12 +374,13 @@ class EntryChanger():
         if menu_selector == 'e' or menu_selector == 'e)' \
                 or menu_selector == 'all':
             self.show_all()
+            return True
 
         # This goes to the show method to show the user there results.
-        if menu_selector != 'q' and menu_selector != 'quit' \
-                and menu_selector != 'e' and menu_selector != 'e)' \
+        if menu_selector != 'e' and menu_selector != 'e)' \
                 and menu_selector != 'all':
             self.show()
+            return True
 
     def search_main(self):
         """ This is the main menu section of search. This returns the user's
