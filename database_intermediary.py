@@ -69,21 +69,21 @@ class DatabaseIntermediary():
                     returned_list.append(item)
 
         if user_date and second_date:
+            user_date = datetime.datetime.strptime(user_date, '%m/%d/%Y')
+            second_date = datetime.datetime.strptime(second_date, '%m/%d/%Y')
             # This determines the order of date_1 and date_2
             if user_date <= second_date:
                 date_1_first = True
             else:
                 date_1_first = False
             for item in db_contents:
-                item_date = datetime.datetime.strftime(item.entry_date,
-                                                       '%m/%d/%Y')
                 if date_1_first:
-                    if (user_date <= item_date and second_date
-                            >= item_date):
+                    if (user_date <= item.entry_date and second_date
+                            >= item.entry_date):
                         returned_list.append(item)
                 else:
-                    if (second_date <= item_date and user_date >=
-                            item_date):
+                    if (second_date <= item.entry_date and user_date >=
+                            item.entry_date):
                         returned_list.append(item)
 
         elif minutes:
@@ -95,8 +95,8 @@ class DatabaseIntermediary():
 
         elif key_phrase:
             for item in db_contents:
-                if key_phrase in str(item.first_name) or \
-                        key_phrase in str(item.last_name) or \
+                if key_phrase == str(item.first_name) or \
+                        key_phrase == str(item.last_name) or \
                         key_phrase in str(item.entry_date) or \
                         key_phrase in str(item.title) or \
                         key_phrase in str(item.minutes) or \

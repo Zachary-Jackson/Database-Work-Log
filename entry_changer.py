@@ -72,7 +72,7 @@ class EntryChanger():
             if all_names != 'n':
                 self.all_names = True
 
-    def name_num_picker(self, found_names):
+    def name_num_picker(self, first_name, found_names):
         """ This gets the user's chosen input if they want to
         choice a number. It returns the name and need_last_name."""
         last_name = ''
@@ -93,19 +93,20 @@ class EntryChanger():
                 use = int(use)
             except ValueError:
                 need_last_name = True
-                return last_name, need_last_name
+                return first_name, last_name, need_last_name
             else:
                 try:
                     last_name = found_names[use-1][1]
                 except IndexError:
                     need_last_name = True
-                    return last_name, need_last_name
+                    return first_name, last_name, need_last_name
                 else:
+                    first_name = found_names[use-1][0]
                     need_last_name = False
-                    return last_name, need_last_name
+                    return first_name, last_name, need_last_name
         else:
             need_last_name = True
-            return last_name, need_last_name
+            return first_name, last_name, need_last_name
 
     def name_last(self):
         """ This gathers a user's last name."""
@@ -160,7 +161,7 @@ class EntryChanger():
                 self.name_shower(names)
             print('')
 
-            first_name = input("\n  Please enter a first name.  \n  ")\
+            first_name = input("\n  Please enter a first name or letter.\n  ")\
                 .title().strip()
 
             if ' ' in first_name or first_name == '':
@@ -194,7 +195,8 @@ class EntryChanger():
 
             found_names = self.find_names(first_name, names)
 
-            last_name, need_last_name = self.name_num_picker(found_names)
+            first_name, last_name, need_last_name = \
+                self.name_num_picker(first_name, found_names)
 
             if need_last_name:
                 last_name = self.name_last()
@@ -271,7 +273,7 @@ class EntryChanger():
         This one differs from add() only because it shows the user
         the data that is to be edited."""
         # Gets the potential user date from the user.
-        user_date = self.edit_date()
+        user_date = self.edit_date(old_item)
         if not user_date:
             return '', '', '', '', True
 
@@ -375,16 +377,22 @@ class EntryChanger():
         if menu_selector == 'b' or menu_selector == 'b)' \
                 or menu_selector == 'time':
             minutes = self.search_time()
-            self.found_results = self.db.search(minutes=minutes)
+            self.found_results = self.db.search(minutes=minutes,
+                                                all_names=self.all_names,
+                                                first_name=self.first_name,
+                                                last_name=self.last_name)
 
         # Find by an exact search
         if menu_selector == 'c' or menu_selector == 'c)' \
            or menu_selector == 'exact':
             self.clear()
-            key_phrase = input("  Enter the 'exact' phrase you want to " +
+            key_phrase = input("\n    Enter the 'exact' phrase you want to " +
                                'search for.\n' +
                                '  This searches titles and notes.  ')
-            self.found_results = self.db.search(key_phrase=key_phrase)
+            self.found_results = self.db.search(key_phrase=key_phrase,
+                                                all_names=self.all_names,
+                                                first_name=self.first_name,
+                                                last_name=self.last_name)
 
         # Find by a regular expression pattern.
         if menu_selector == 'd' or menu_selector == 'd' \
@@ -624,7 +632,9 @@ class EntryChanger():
                 return True
 
             elif menu_selector == 'd' or menu_selector == 'delete':
-                index_counter = self.show_delete(index_counter)
+                index_counter, deleted = self.show_delete(index_counter)
+                if deleted:
+                    return True
 
     def show_movment_check(self, direction, index_counter, length):
         """ This checks if the user's request can actually move left or right.
@@ -738,11 +748,13 @@ class EntryChanger():
 
     def show_delete(self, index_counter):
         """ This asks the user if they wanted to delete and if so. Does it."""
+        deleted = False
         delete = input('\n  Are you sure you want to delete this ' +
                        "entry? N/y'").lower()
         if delete == 'y':
             self.db.editor(self.found_results[index_counter])
             del self.found_results[index_counter]
             index_counter -= 1
+            deleted = True
             self.show(index_counter=index_counter)
-        return index_counter
+        return index_counter, deleted

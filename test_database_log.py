@@ -112,16 +112,16 @@ class EntryChangerTest(unittest.TestCase):
         name = [('Charles', 'Jackson')]
         # Tests a normal user input and name returned
         with unittest.mock.patch('builtins.input', return_value='1'):
-            last_name, need_name = self.ec.name_num_picker(name)
+            first, last_name, need_name = self.ec.name_num_picker('Bob', name)
             self.assertFalse(need_name)
             self.assertEqual('Jackson', last_name)
         # Tests a non integer input
         with unittest.mock.patch('builtins.input', return_value='four'):
-            last_name, need_name = self.ec.name_num_picker(name)
+            first, last_name, need_name = self.ec.name_num_picker('Bob', name)
             self.assertTrue(need_name)
         # Tests a IndexError input
         with unittest.mock.patch('builtins.input', return_value='4'):
-            test_name, need_name = self.ec.name_num_picker(name)
+            first, test_name, need_name = self.ec.name_num_picker('Bob', name)
             self.assertTrue(need_name)
 
     def test_name_last(self):
@@ -461,7 +461,8 @@ class EntryChangerTest(unittest.TestCase):
     def test_show_delete(self):
         """ Tests show_delete."""
         with unittest.mock.patch('builtins.input', return_value='n'):
-            self.assertEqual(5, self.ec.show_delete(5))
+            index, deleted = self.ec.show_delete(5)
+            self.assertEqual(5, index)
 
 
 class DatabaseIntermediaryTest(unittest.TestCase):
