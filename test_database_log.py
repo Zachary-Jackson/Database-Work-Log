@@ -41,8 +41,13 @@ class EntryChangerTest(unittest.TestCase):
         self.ec = EntryChanger()
         self.ecm = EntryChangeMock()
         self.db = DatabaseIntermediary()
+
         entry_list = self.db.return_all()
         self.ec.entry = entry_list[0]
+
+        names = [('Albert', 'Smith'), ('Aoraki', 'Cook'), ('First', 'Last'),
+                 ('Bob', 'Hatfield'), ('Dillen', 'Jones')]
+        self.ec.names = names
 
     def test_init(self):
         """ This tests that __init__ is working. """
@@ -119,6 +124,28 @@ class EntryChangerTest(unittest.TestCase):
             test_name, need_name = self.ec.name_num_picker(name)
             self.assertTrue(need_name)
 
+    def test_name_last(self):
+        """ This tests name_last."""
+        with unittest.mock.patch('builtins.input', return_value='Moore'):
+            self.assertEqual('Moore', self.ec.name_last())
+
+    def test_name_shower(self):
+        """ This test to see if name_shower prints names."""
+        self.assertTrue(self.ec.name_shower(self.ec.names))
+
+    def test_name_picker_first(self):
+        """ This tests name_picker_first."""
+        with unittest.mock.patch('builtins.input', return_value='Hattie'):
+            self.assertEqual('Hattie',
+                             self.ec.name_picker_first(self.ec.names))
+
+    def test_name_picker(self):
+        """ This tests to see if name_picker returns names."""
+        with unittest.mock.patch('builtins.input', return_value='y'):
+            first, last = self.ec.name_picker()
+            self.assertEqual('Y', first)
+            self.assertEqual('Y', last)
+
     def test_name_picker_all(self):
         """ This tests to see if name_picker_all works."""
         with unittest.mock.patch('builtins.input', return_value='y'):
@@ -144,10 +171,6 @@ class EntryChangerTest(unittest.TestCase):
     def test_clear(self):
         """ Checks is clear crashes."""
         self.assertTrue(self.ec.clear())
-
-    def test_name_picker(self):
-        """ Checks name_picker."""
-        pass
 
     @patch('entry_changer.EntryChanger.add_date',
            new=EntryChangeMock.test_date)
@@ -352,6 +375,16 @@ class EntryChangerTest(unittest.TestCase):
         self.ec.found_results = []
         self.assertFalse(self.ec.show())
 
+    @patch('database_intermediary.DatabaseIntermediary.return_all',
+           new=EntryChangeMock.test_minute)
+    @patch('entry_changer.EntryChanger.show',
+           new=EntryChangeMock.test_minute)
+    def test_show_all(self):
+        """ This tests show_all."""
+        self.ec.all_names = False
+        test = self.ec.show_all()
+        self.assertTrue(test)
+
     def test_show_run(self):
         """ Tests show_run."""
         # Tests a normal operation
@@ -407,11 +440,28 @@ class EntryChangerTest(unittest.TestCase):
         menu_option = self.ec.show_index(0, 1)
         self.assertFalse(menu_option)
 
+    @patch('time.sleep', new=EntryChangeMock.test_minute)
+    def test_show_movment_check(self):
+        """ Tests show_movment_check."""
+        # Checks when user can't go right.
+        self.assertEqual(4, self.ec.show_movment_check('right', 4, 5))
+        # Checks when user can go right.
+        self.assertEqual(5, self.ec.show_movment_check('right', 4, 15))
+        # Checks when user can't go left.
+        self.assertEqual(0, self.ec.show_movment_check('left', 0, 5))
+        # Checks when user can go left.
+        self.assertEqual(3, self.ec.show_movment_check('left', 4, 5))
+
     def test_show_go(self):
         """ Tests show_go."""
         with unittest.mock.patch('builtins.input', return_value=3):
             number = self.ec.show_go(5)
             self.assertEqual(number, 3)
+
+    def test_show_delete(self):
+        """ Tests show_delete."""
+        with unittest.mock.patch('builtins.input', return_value='n'):
+            self.assertEqual(5, self.ec.show_delete(5))
 
 
 class DatabaseIntermediaryTest(unittest.TestCase):

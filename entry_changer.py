@@ -107,80 +107,103 @@ class EntryChanger():
             need_last_name = True
             return last_name, need_last_name
 
+    def name_last(self):
+        """ This gathers a user's last name."""
+        clear_screen = False
+        while True:
+            if clear_screen:
+                for _ in range(3, 0, -1):
+                    self.clear()
+                    print("\n  Please enter a last name with no " +
+                          "middle names.\n")
+                    print("  You can enter another name in {} seconds"
+                          .format(_))
+                    time.sleep(1)
+                    self.clear()
+            last_name = input("\n  Please enter a last name.  \n  ")\
+                .title().strip()
+            if ' ' in last_name or last_name == '':
+                clear_screen = True
+            else:
+                return last_name
+
+    def name_shower(self, names):
+        """ This shows a list of names in a easy to read format."""
+        name_number = 0
+        name_counter = 0
+        self.clear()
+        print('\n    Here are the current users to the Work ' +
+              'Log Program.\n')
+        for name in names:
+            if name_counter == 0:
+                print("  {} {}".format(name[0], name[1]),
+                      end='')
+                name_counter += 1
+            else:
+                if name_counter == 3:
+                    print(', {} {}'.format(name[0], name[1]))
+                    name_counter = 0
+                else:
+                    print(', {} {}'.format(name[0], name[1]),
+                          end='')
+                    name_counter += 1
+            name_number += 1
+        return True
+
+    def name_picker_first(self, names):
+        """ Gathers the user's first name."""
+        run_loop = True
+        while run_loop:
+            self.clear()
+            # name_counter choses if a name is displayed beside another
+            if len(names) < 12:
+                self.name_shower(names)
+            print('')
+
+            first_name = input("\n  Please enter a first name.  \n  ")\
+                .title().strip()
+
+            if ' ' in first_name or first_name == '':
+                for _ in range(3, 0, -1):
+                    self.clear()
+                    print("\n\n  Please enter a first name only.")
+                    print("  You can enter another name in {} seconds"
+                          .format(_))
+                    time.sleep(1)
+                    self.clear()
+            else:
+                run_loop = False
+        return first_name
+
+    def find_names(self, first_name, names):
+        """ This returns a list of names that matches the given first_name."""
+        names = self.db.name_returner()
+        # Checks to see if the first_name entered by the user
+        # has a corresponding last name.
+        found_names = []
+        for name in names:
+            if first_name in name[0]:
+                found_names.append(name)
+        return found_names
+
     def name_picker(self):
         """ This gathers a single users first and last name. """
         while True:
-            clear_screen = True
-            while True:
-                if clear_screen:
-                    self.clear()
-                    names = self.db.name_returner()
-                    self.clear()
-                    # name_counter choses if a name is displayed beside another
-                    name_number = 0
-                    name_counter = 0
-                    if len(names) < 12:
-                        print('\n    Here are the current users to the Work ' +
-                              'Log Program.\n')
-                        for name in names:
-                            if name_counter == 0:
-                                print("  {} {}".format(name[0], name[1]),
-                                      end='')
-                                name_counter += 1
-                            else:
-                                if name_counter == 3:
-                                    print(', {} {}'.format(name[0], name[1]))
-                                    name_counter = 0
-                                else:
-                                    print(', {} {}'.format(name[0], name[1]),
-                                          end='')
-                                    name_counter += 1
-                            name_number += 1
-                    print('')
+            names = self.db.name_returner()
+            first_name = self.name_picker_first(names)
 
-                first_name = input("\n  Please enter a first name.  \n  ")\
-                    .title().strip()
+            found_names = self.find_names(first_name, names)
 
-                # found_names is used a couple lines down.
-                found_names = []
+            last_name, need_last_name = self.name_num_picker(found_names)
 
-                if ' ' in first_name or first_name == '':
-                    clear_screen = False
-                else:
-                    # Checks to see if the first_name entered by the user
-                    # has a corresponding last name.
-                    found_names = []
-                    for name in names:
-                        if first_name in name[0]:
-                            found_names.append(name)
-
-                last_name, need_last_name = self.name_num_picker(found_names)
-                break
-
-            clear_screen = False
-            while need_last_name:
-                if clear_screen:
-                    for _ in range(3, 0, -1):
-                        self.clear()
-                        print("\n  Please enter a last name with no " +
-                              "middle names.\n")
-                        print("  You can enter another name in {} seconds"
-                              .format(_))
-                        time.sleep(1)
-                        self.clear()
-                last_name = input("\n  Please enter a last name.  \n  ")\
-                    .title().strip()
-                if ' ' in last_name or last_name == '':
-                    clear_screen = True
-                else:
-                    break
+            if need_last_name:
+                last_name = self.name_last()
 
             good_name = input("\n  Is {} {} the name you want to use? Y/n  "
                               .format(first_name, last_name)).lower()
             if good_name != 'n':
                 self.name_setter(first_name, last_name)
                 return self.first_name, self.last_name
-                break
 
     def add(self):
         """ This gathers information from the user and sends it to
@@ -332,6 +355,7 @@ class EntryChanger():
             self.found_results = self.db.return_all(self.first_name,
                                                     self.last_name)
         self.show()
+        return True
 
     def search(self):
         """ This gathers the users input and determins how to process the
@@ -576,49 +600,59 @@ class EntryChanger():
             # This controls if the user can actually go left and right.
             # If not, then the user is told and can choice what to do next.
             if menu_selector == 'r' or menu_selector == 'right':
-                if index_counter >= length - 1:
-                    timer_counter = range(3, 0, -1)
-                    for seconds in timer_counter:
-                        self.clear()
-                        print("\n    You can not go right.\n" +
-                              "  Returning to your search in {} seconds."
-                              .format(seconds))
-                        time.sleep(1)
-                else:
-                    index_counter += 1
+                index_counter = self.show_movment_check('right', index_counter,
+                                                        length)
+
             elif menu_selector == 'g' or menu_selector == 'go':
                 entry_num = self.show_go(length)
                 index_counter = entry_num - 1
+
             elif menu_selector == 'l' or menu_selector == 'left':
-                if index_counter <= 0:
-                    timer_counter = range(3, 0, -1)
-                    for seconds in timer_counter:
-                        self.clear()
-                        print("\n    You can not go left.\n" +
-                              "  Returning to your search in {} seconds."
-                              .format(seconds))
-                        time.sleep(1)
-                else:
-                    index_counter -= 1
+                index_counter = self.show_movment_check('left', index_counter,
+                                                        length)
+
             elif menu_selector == 'q' or menu_selector == 'quit':
                 return False
+
             elif menu_selector == 's' or menu_selector == 'search':
                 run_loop = False
                 self.search()
                 return True
+
             elif menu_selector == 'e' or menu_selector == 'edit':
                 self.show_main_loop_edit(index_counter)
                 return True
 
             elif menu_selector == 'd' or menu_selector == 'delete':
-                delete = input('\n  Are you sure you want to delete this ' +
-                               "entry? N/y'").lower()
-                if delete == 'y':
-                    self.db.editor(self.found_results[index_counter])
-                    del self.found_results[index_counter]
-                    index_counter -= 1
-                    self.show(index_counter=index_counter)
-                    break
+                index_counter = self.show_delete(index_counter)
+
+    def show_movment_check(self, direction, index_counter, length):
+        """ This checks if the user's request can actually move left or right.
+        It also tells the user if they can not. This returns index_number"""
+        if direction == 'right':
+            if index_counter >= length - 1:
+                timer_counter = range(3, 0, -1)
+                for seconds in timer_counter:
+                    self.clear()
+                    print("\n    You can not go right.\n" +
+                          "  Returning to your search in {} seconds."
+                          .format(seconds))
+                    time.sleep(1)
+                return index_counter
+            else:
+                return index_counter + 1
+        if direction == 'left':
+            if index_counter <= 0:
+                timer_counter = range(3, 0, -1)
+                for seconds in timer_counter:
+                    self.clear()
+                    print("\n    You can not go left.\n" +
+                          "  Returning to your search in {} seconds."
+                          .format(seconds))
+                    time.sleep(1)
+                return index_counter
+            else:
+                return index_counter - 1
 
     def show_main_loop_edit(self, index_counter):
         """ This handles the user's edit request and fulfills it to the
@@ -701,3 +735,14 @@ class EntryChanger():
                     return entry_num
                 else:
                     clear_screen = True
+
+    def show_delete(self, index_counter):
+        """ This asks the user if they wanted to delete and if so. Does it."""
+        delete = input('\n  Are you sure you want to delete this ' +
+                       "entry? N/y'").lower()
+        if delete == 'y':
+            self.db.editor(self.found_results[index_counter])
+            del self.found_results[index_counter]
+            index_counter -= 1
+            self.show(index_counter=index_counter)
+        return index_counter
